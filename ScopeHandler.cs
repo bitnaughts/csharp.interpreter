@@ -21,10 +21,21 @@ public class ScopeHandler {
         hasAlreadyStepped = false;
         hasFinished = false;
     }
-
     public bool isVariableInScope (string name) {
         if (scope.Count == 0) return false;
         return scope.Peek ().variable_handler.isVariable (name);
+    }
+    public bool isVariableInScope (string name, out VariableObject variable_reference) {
+        
+        variable_reference = null;
+        if (scope.Count == 0) return false;
+        int index;
+        if (scope.Peek ().variable_handler.isVariable (name, out index))
+        {
+            variable_reference = scope.Peek ().variable_handler.getVariable(index);
+            return true;
+        }
+        return false;
     }
     public void setVariableInScope (string line) {
         if (scope.Count == 0) return;

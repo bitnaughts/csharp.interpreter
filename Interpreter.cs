@@ -29,7 +29,7 @@ public class Interpreter {
 
     /* Parsing each line of text into code (a.k.a. where the magic happens) */
     public bool interpretLine () {
-        // debugger += "LINE: " + script[scope.getPointer ()] + "\n";
+        debugger += "LINE: " + script[scope.getPointer ()] + "\n";
         string line = script[scope.getPointer ()];
         string[] line_parts = line.Split (' ');
 
@@ -88,10 +88,17 @@ public class Interpreter {
                 }
                 break;
             default:
-
+                VariableObject variable_reference;
                 if (scope.isVariableInScope (line_parts[0])) {
                     /* CHECK IF LINE REFERS TO A VARIABLE, e.g. "i = 10;" */
                     scope.setVariableInScope (line);
+
+                } else if (scope.isVariableInScope (line_parts[0].Split('.')[0], out variable_reference)) {
+
+
+                    /* e.g. "console1.Add(...)" */
+                    listener_handler.callListener (line, variable_reference, obj);
+                    debugger += "YES\n\n";
 
                 } else if (function_handler.isFunction (line_parts[0].Split ('(') [0])) {
                     /* CHECK IF LINE REFERS TO A FUNCTION, e.g. "print(x);" */
@@ -99,8 +106,11 @@ public class Interpreter {
                     scope.push (Range.returnTo (function.range, getPointer ()), false);
 
                 } else if (listener_handler.isFunction (line_parts[0].Split ('(') [0])) {
+
+                    //TODO:: Not sure if this is accomplishing intended functionality
+
                     /* CHECK IF LINE REFERS TO A LISTENER, e.g. "Console.PrintLine("test");" */
-                    listener_handler.callListener (line, obj);
+                    // listener_handler.callListener (line,  obj);
 
                 } else {
                     debugger += "Not able to process line" + line;

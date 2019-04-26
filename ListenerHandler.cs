@@ -37,10 +37,11 @@ public class ListenerHandler {
                 return true;
             }
         }
+
         /* Is it a static function? */
         return false;
     }
-    public void callListener (string line, GameObject obj) {
+    public void callListener (string line, VariableObject variable_reference, GameObject obj) {
         string[] line_parts = line.Split (' ');
         string class_name = line_parts[0].Split ('.') [0];
         string function_name = line_parts[0].Split ('.') [1].Split ('(') [0];
@@ -49,14 +50,18 @@ public class ListenerHandler {
 
         string[] function_parameters_arr = function_parameters.Split (',');
 
-        switch (class_name) {
-            case Classes.CONSOLE:
-                // Referencer.consoleManager.execute (class_name, function_name, function_parameters_arr, obj);
-                break;
-            case Classes.PLOTTER:
+        //TODO:
+        //Will want to pass variable type (or entire variable obj) to this function to know what referencer connection to make
+
+        //switch (class_name) {
+          //  case Classes.CONSOLE:
+          if (class_name == "console1")
+                Referencer.consoleManager.execute (variable_reference, function_name, function_parameters_arr, obj);
+            //    break;
+            //case Classes.PLOTTER:
                 // Referencer.plotterManager.execute (command, "", obj);
-                break;
-        }
+              //  break;
+        //}
     }
     public void updateListeners (ScopeHandler scope, GameObject obj) {
         if (has_been_added) {

@@ -32,11 +32,13 @@ public class VariableHandler {
             if (variables[i].name == name) return i;
         return -1;
     }
-
     public string getValue (string input) {
         int index;
         if (isVariable (input, out index)) return variables[index].value;
         return input;
+    }
+    public VariableObject getVariable (int index) {
+        return variables[index];
     }
     public void declareVariable (string line) {
 
