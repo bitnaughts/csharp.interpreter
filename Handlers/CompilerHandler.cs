@@ -14,17 +14,17 @@ public class CompilerHandler {
 
     public List<string> handlers;
     public FunctionHandler function_handler;
-    public ScopeNode base_scope;
+    public ScopeObject base_scope;
     // public List<VariableObject> variables;
 
     public CompilerHandler (string[] script) {
         handlers = new List<string> ();
-        base_scope = new ScopeNode (new Range(-1, 1000), false);
+        base_scope = new ScopeObject (new RangeObject(-1, 1000), false);
         function_handler = new FunctionHandler ();
 
         compile (script);
 
-        base_scope.setRange (Range.getScopeRange (script, main_function_line));
+        base_scope.setRange (RangeObject.getScopeRange (script, main_function_line));
     }
 
     public void compile (string[] script) {
@@ -57,7 +57,7 @@ public class CompilerHandler {
                         case Variables.STRING:
                             if (line_parts[1].Contains (Operators.OPENING_PARENTHESIS)) {
                                 /* Function declaration, e.g. "void sum (int x, int y) {" */
-                                function_handler.declareFunction (line, Range.getScopeRange (script, i));
+                                function_handler.declareFunction (line, RangeObject.getScopeRange (script, i));
                             } else {
                                 /* Variable declaration, e.g. "int y;" */
                                 base_scope.variable_handler.declareVariable (line);

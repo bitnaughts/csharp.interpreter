@@ -50,7 +50,7 @@ public class Interpreter {
             case Keywords.WHILE:
             case Keywords.FOR:
                 /* Add to scope "if scope hasn't been pushed for this yet..." */
-                scope.push (Range.getScopeRange (script, getPointer ()), line_parts[0] != Keywords.IF);
+                scope.push (RangeObject.getScopeRange (script, getPointer ()), line_parts[0] != Keywords.IF);
                 /* e.g. "while (i < 10) {" */
                 parameter = Operators.EMPTY;
                 for (int i = 1; i < line_parts.Length - 1; i++) parameter += line_parts[i] + " ";
@@ -103,7 +103,7 @@ public class Interpreter {
                 } else if (function_handler.isFunction (line_parts[0].Split ('(') [0])) {
                     /* CHECK IF LINE REFERS TO A FUNCTION, e.g. "print(x);" */
                     FunctionObject function = function_handler.getFunction (line_parts[0].Split ('(') [0]);
-                    scope.push (Range.returnTo (function.range, getPointer ()), false);
+                    scope.push (RangeObject.returnTo (function.range, getPointer ()), false);
 
                 } else if (listener_handler.isFunction (line_parts[0].Split ('(') [0])) {
 

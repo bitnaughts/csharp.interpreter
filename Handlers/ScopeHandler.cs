@@ -4,7 +4,7 @@ public class ScopeHandler {
 
     private int pointer;
 
-    private Stack<ScopeNode> scope;
+    private Stack<ScopeObject> scope;
 
     //Available Functions to Call
     //might need to make a "FunctionObject" for this to keep track of potential parameters/return types....
@@ -13,7 +13,7 @@ public class ScopeHandler {
     private bool hasFinished;
 
     public ScopeHandler (CompilerHandler compiled_script) {
-        scope = new Stack<ScopeNode> ();
+        scope = new Stack<ScopeObject> ();
         scope.Push (compiled_script.base_scope);
 
         pointer = compiled_script.main_function_line;
@@ -73,13 +73,13 @@ public class ScopeHandler {
             pointer++;
         }
     }
-    public void push (Range range) {
+    public void push (RangeObject range) {
         push (range, false);
     }
-    public void push (Range range, bool isLooping) {
+    public void push (RangeObject range, bool isLooping) {
         //Add all existing variables to new scope
         if (scope.Count == 0 || scope.Peek ().getStartLine () != range.start) {
-            ScopeNode node = new ScopeNode (range, getVariablesInScope (), isLooping);
+            ScopeObject node = new ScopeObject (range, getVariablesInScope (), isLooping);
             scope.Push (node);
 
             pointer = range.start;
@@ -136,7 +136,7 @@ public class ScopeHandler {
     // }
     public override string ToString () {
         string output = "\n" + pointer + "\n";
-        ScopeNode[] scope_array = scope.ToArray ();
+        ScopeObject[] scope_array = scope.ToArray ();
         for (int i = 0; i < scope_array.Length; i++) {
             output += i + ":\t" + scope_array[i].ToString () + "\n";
         }

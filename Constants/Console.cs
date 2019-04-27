@@ -5,7 +5,13 @@
     OPEN = "Open",
     ADD = "Add",
     CLOSE = "Close",
-    UPDATE = "Update";
+    UPDATE = "Update",
+    
+    
+    PLOTTER = "Plotter",
+    LOGGER = "Logger";
+
+
 
 
 }

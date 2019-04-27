@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 
-public class ScopeNode {
-    private Range range;
+public class ScopeObject {
+    private RangeObject range;
 
     private bool looping;
 
@@ -26,19 +26,19 @@ public class ScopeNode {
     when closing node, if condition if false, go to end_line + 1; if condition is true, go to start_line + 1
     */
 
-    public ScopeNode (Range range, bool looping) {
+    public ScopeObject (RangeObject range, bool looping) {
         this.range = range;
         this.variable_handler = new VariableHandler ();
         this.looping = looping;
 
     }
-    public ScopeNode (Range range, List<VariableObject> variables, bool looping) {
+    public ScopeObject (RangeObject range, List<VariableObject> variables, bool looping) {
         this.range = range;
         this.variable_handler = new VariableHandler (variables);
         this.looping = looping;
     }
 
-    public void setRange(Range range) {
+    public void setRange(RangeObject range) {
         this.range = range;
     }
 

@@ -49,6 +49,7 @@ public class ListenerHandler {
         function_parameters = function_parameters.Substring (0, function_parameters.Length - 2);
 
         string[] function_parameters_arr = function_parameters.Split (',');
+        function_parameters_arr[1] = function_parameters_arr[1].Split('\"')[1]; // remove "quotes" from string
 
         //TODO:
         //Will want to pass variable type (or entire variable obj) to this function to know what referencer connection to make

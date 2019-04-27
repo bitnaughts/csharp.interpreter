@@ -11,10 +11,10 @@ public class FunctionHandler {
         this.functions = functions;
     }
 
-    public void declareFunction (string line, Range scope_bounds) {
+    public void declareFunction (string line, RangeObject scope_bounds) {
         declareFunction (line.Split (' '), scope_bounds);
     }
-    public void declareFunction (string[] line_parts, Range scope_bounds) {
+    public void declareFunction (string[] line_parts, RangeObject scope_bounds) {
         /* e.g. { "void", "funct(int", "i)", "{" }  */
         string return_type = line_parts[0];
         string name = line_parts[1].Split ('(') [0];
