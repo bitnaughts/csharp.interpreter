@@ -1,5 +1,6 @@
 ﻿public static class Operators {
     public const string EMPTY = "",
+        SPACE = " ",
         DOT = ".",
         EQUALS = "=",
         INCREMENT = "++",
@@ -32,6 +33,8 @@
 
     public const char END_LINE_CHAR = ';';
 
+
+    /* For the Parser.simplify() function */
     public static readonly string[][] PEMDAS = {
         new string[] { MODULUS },
         new string[] { TIMES, DIVIDE },
@@ -40,5 +43,8 @@
         new string[] { AND },
         new string[] { OR }
     };
+
+    /* For the String.Split() function */
+    public static readonly string[] SPLIT = new string[] { SPACE };
 
 }
