@@ -10,98 +10,74 @@ using UnityEngine;
 public static class Parser {
 
     /* Parser simplifies complex statements into simple ones, managing PEMDAS, function calls, etc. */
-    public static string step (string line_in, VariableObject[] variables) {
-        string line_out = line_in;
+    public static string step (string line_in, VariableHandler variable_handler) {
 
-        //If ()s exist
-        //  Go to deepest ()s
-        //      if parts[] of deepest ()s > 1
-        //          simplify parts[] 1 level
-        //          if parts[] length == 1
-        //              if function(value)
-        //                  manage function calls
-        //              else 
-        //                  replace (value) with value
-        //else
-        //  simplify parts[] 1 level
+        if (line_in.Contains (Operators.OPENING_PARENTHESIS)) {
 
-        return line_out;
+            int start_of_parenthesis = 0;
+            string inner_snippet = line_in;
+
+            while (inner_snippet.Contains (Operators.OPENING_PARENTHESIS)) {
+
+                start_of_parenthesis += inner_snippet.IndexOf (Operators.OPENING_PARENTHESIS);
+
+                inner_snippet = inner_snippet.Substring (start_of_parenthesis, getLengthToClosingBracket(line_in, start_of_parenthesis));
+            }
+            return line_in.Remove (start_of_parenthesis, inner_snippet.Length).Insert (start_of_parenthesis, simplify (inner_snippet));
+        }
+        return simplify (line_in);
     }
 
-    private static string simplify (string input) {
+    private static string simplify (string input, VariableHandler variable_handler) {
 
         /* Example input for this function: "4 + 4 * 4" */
-        /* Of note: since step() manages any parenthesis-related PEDMAS, so that isn't handled in this function */
+        /* Note: Since step() manages any parenthesis-related PEDMAS, so that isn't handled in this function */
 
-        /* e.g. ["4", "+", "4", "*", "4"] */
-        string[] parts = input.Split (' ');
-        
-        /* Stop simplifying after one step of PEDMAS */
-        bool processed = false;
+        /* Splits along spaces, e.g. ["4", "+", "4", "*", "4"] */
+        string[] parts = input.Split (Operators.SPLIT, StringSplitOptions.RemoveEmptyEntries);
 
-        /* PEDMAS, e.g. ["4", "+", 4, "*", "4"] ==> ["4", "+", "16"] ==> ["20"] */
-
+        /* PEDMAS, e.g. ["4", "+", 4, "*", "4"] ==> ["4", "+", "16"] */
         /* First Modulus, then Multiplication and Division together, then Addition and Subtraction together, etc. */
-        for (int operation_set = 0; operation_set < Operators.PEMDAS.Length && !processed; operation_set++) {
+        for (int operation_set = 0; operation_set < Operators.PEMDAS.Length; operation_set++) {
 
             /* Look for operations (the odd indices of the parts array)  */
-            for (int part = 1; part < parts.Count - 1 && !processed; part += 2) {
+            for (int part = 1; part < parts.Count - 1; part += 2) {
 
                 /* Check if operation of input matches current order of PEMDAS */
-                for (int operation = 0; operation < Operators.PEMDAS[operation_set].Length && !processed; operation++) {
-                    
+                for (int operation = 0; operation < Operators.PEMDAS[operation_set].Length; operation++) {
+
                     if (parts[part] == Operators.PEMDAS[operation_set][operation]) {
 
-                        string left = getValue (parts[part - 1]), right = getValue (parts[part + 1]);
+                        /* Replace any variable's mnemonic name with it's value */
+                        string left = variable_handler.getValue (parts[part - 1]),
+                            right = variable_handler.getValue (parts[part + 1]);
 
-                        parts[part - 1] = Evaluator.simplify (left, operation_type, right);
-
+                        /* Execute operation between two values, compresses three parts into one, e.g. ["4", "*", "4"] ==> ["16", "*", "4"] ==> ["16"] */
+                        parts[part - 1] = Evaluator.simplify (left, parts[part], right);
                         parts.RemoveRange (part, 2);
 
-                        break;
+                        /* Recombine parts to resulting, simplified "4 + 16" */
+                        /* Note: It correctly chooses to evaluate multiplication before addition, correctly following PEMDAS */
+                        return String.Join (Operators.SPACE, parts);
                     }
                 }
             }
         }
-        /* RETURN FULLY SIMPLIFIED VALUE, e.g. "28" */
-        return parts[0];
+    }
 
+      public static int getLengthToClosingBracket (string line_in, int start_index) {
+           
+        int count = 0;
+        int parenthesis_count = 1;
+
+        while (parenthesis_count > 0) {
+            count++;
+            if (line_in[start_index + count] == Operators.OPENING_BRACKET) {
+                parenthesis_count++;
+            } else if (line_in[start_index + count] == Operators.CLOSING_BRACKET) {
+                parenthesis_count--;
+            }
+        }
+        return count;
     }
 }
-
-// public string parse (string input) {
-//     if (input != Operators.EMPTY) {
-//         List<string> parts = input.Split (' ').ToList<string> ();
-//         /* EVALUATE PARENTHESIS AND FUNCTIONS RECURSIVELY, e.g. "12 + function(2) * 4" ==> "12 + 4 * 4" */
-
-//         //this section is still untested and requires thorough testing
-//         //for edge cases with parenthesis, e.g. "Mathf.Abs((2 + 1) * 2)"
-//         //
-//         //I think this logic isn't the best suited for parenthesis
-//         //Fix:
-//         //find deepest set of parenthesis, combine spaces to parameters[], parse each parameter in parameters (for ","s in functions)
-//         //in the end, "2 * (2 + 2)" = "2 * 4"
-//         //or with functions, "2 * Mathf.Abs(2 + 2)" = "2 * Mathf.Abs(4)"...
-//         //If function preceeds ()s, keep parenthesis, else return parse(parameter)
-
-//         for (int part = 0; part < parts.Count; part++) {
-//             if (parts[part].Contains (Operators.OPENING_PARENTHESIS)) {
-//                 string parts_to_be_condensed = parts[part];
-//                 while (parts[part].Contains (Operators.CLOSING_PARENTHESIS) == false) {
-//                     part++;
-//                     parts_to_be_condensed += " " + parts[part];
-//                 }
-//                 if (parts[part].IndexOf (Operators.OPENING_PARENTHESIS) == 0) {
-//                     parts[part] = parse (parts_to_be_condensed);
-//                 } else {
-//                     //to support user-made functions, or functions that require interpreted lines of code to be executed first, will require logic here to allow for putting this parse in a stack to be popped on the "return" of said function
-//                     string function = parts[part].Substring (0, parts[part].IndexOf (Operators.OPENING_PARENTHESIS));
-//                     /* e.g. Mathf.Abs(-10) == 10 */
-//                     // parts[part] = Evaluator.simplifyFunction (function, parse (parts_to_be_condensed));
-//                 }
-//             }
-//         }
-
-//     }
-//     return Operators.EMPTY;
-// }

@@ -27,10 +27,17 @@ public class Interpreter {
         function_handler = compiler.function_handler;
     }
 
-    /* Parsing each line of text into code (a.k.a. where the magic happens) */
-    public bool interpretLine () {
+    /* ... to be described...  (a.k.a. where the magic happens) */
+    public bool step () {
         debugger += "LINE: " + script[scope.getPointer ()] + "\n";
+        
         string line = script[scope.getPointer ()];
+
+        if (line.isSimplified()) {
+
+        }
+        
+
         string[] line_parts = line.Split (' ');
 
         switch (line_parts[0]) {
@@ -120,7 +127,7 @@ public class Interpreter {
         if (scope.isFinished ()) return true;
         else {
             scope.step ();
-            listener_handler.updateListeners (scope, obj);
+            listener_handler.updateListeners (this);
             return false;
         }
     }
