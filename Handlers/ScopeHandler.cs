@@ -16,7 +16,7 @@ public class ScopeHandler {
         scope = new Stack<ScopeObject> ();
         scope.Push (compiled_script.base_scope);
 
-        pointer = compiled_script.main_function_line;
+        pointer = compiled_script.main_function_line + 1;
 
         hasAlreadyStepped = false;
         hasFinished = false;

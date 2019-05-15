@@ -69,8 +69,6 @@ public class ScriptObject {
 	}
 
 	public override string ToString () {
-		string output = "";
-		output += interpreter.ToString ();
-		return output;
+		return interpreter.ToString ();
 	}
 }

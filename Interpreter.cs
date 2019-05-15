@@ -32,106 +32,113 @@ public class Interpreter {
     /* ... to be described...  (a.k.a. where the magic happens) */
     public bool step () {
 
-        debugger += "LINE: " + script[scope.getPointer ()] + "\n";
+        debugger += "LINE: " + script[getPointer ()] + "\n";
 
-        string line = script[scope.getPointer ()];
+        string line = script[getPointer ()];
+
+        Logger.Log (debugger);
 
         /* ... */
-        line = Parser.step(line, getVariableHandler(), line_simplified); 
-        
-        
-        
 
-        string[] line_parts = line.Split (' ');
+        line = Parser.step (line, getVariableHandler (), out line_simplified);
 
-        switch (line_parts[0]) {
-            case Operators.EMPTY:
-                break;
-            case Keywords.BREAK:
-                scope.pop ();
-                break;
-            case Operators.CLOSING_BRACKET:
-                if (scope.isLooping ()) scope.back ();
-                else scope.pop ();
-                break;
-            case Keywords.CONTINUE:
-                scope.back ();
-                break;
-            case Keywords.IF:
-            case Keywords.WHILE:
-            case Keywords.FOR:
-                /* Add to scope "if scope hasn't been pushed for this yet..." */
-                scope.push (RangeObject.getScopeRange (script, getPointer ()), line_parts[0] != Keywords.IF);
-                /* e.g. "while (i < 10) {" */
-                parameter = Operators.EMPTY;
-                for (int i = 1; i < line_parts.Length - 1; i++) parameter += line_parts[i] + " ";
-                parameter = parameter.Substring (1, parameter.Length - 3);
+        script[getPointer()] = line;
 
-                if (line_parts[0] == Keywords.FOR) {
-                    /* e.g. "int i = 0; i < 10; i++" */
-                    string[] parameters = parameter.Split (Operators.END_LINE_CHAR);
-                    variable_initialization = parameters[0];
-                    variable_modifier = parameters[2].Substring (1);
-                    parameter = parameters[1].Substring (1);
-                    /* e.g. ["int i = 0", "i < 10", "i++"] */
-                    if (scope.isVariableInScope (variable_initialization.Split (' ') [1])) {
-                        scope.setVariableInScope (variable_modifier); /* Is not the first time for loop has run, e.g. "i" exists*/
-                    } else {
-                        scope.declareVariableInScope (variable_initialization); /* Run first part of for loop for first iteration, e.g. "i" needs to be initialized*/
+        if (line_simplified) {
+
+            string[] line_parts = line.Split (' ');
+
+            switch (line_parts[0]) {
+                case Operators.EMPTY:
+                    break;
+                case Keywords.BREAK:
+                    scope.pop ();
+                    break;
+                case Operators.CLOSING_BRACKET:
+                    if (scope.isLooping ()) scope.back ();
+                    else scope.pop ();
+                    break;
+                case Keywords.CONTINUE:
+                    scope.back ();
+                    break;
+                case Keywords.IF:
+                case Keywords.WHILE:
+                case Keywords.FOR:
+                    /* Add to scope "if scope hasn't been pushed for this yet..." */
+                    scope.push (RangeObject.getScopeRange (script, getPointer ()), line_parts[0] != Keywords.IF);
+                    /* e.g. "while (i < 10) {" */
+                    parameter = Operators.EMPTY;
+                    for (int i = 1; i < line_parts.Length - 1; i++) parameter += line_parts[i] + " ";
+                    parameter = parameter.Substring (1, parameter.Length - 3);
+
+                    if (line_parts[0] == Keywords.FOR) {
+                        /* e.g. "int i = 0; i < 10; i++" */
+                        string[] parameters = parameter.Split (Operators.END_LINE_CHAR);
+                        variable_initialization = parameters[0];
+                        variable_modifier = parameters[2].Substring (1);
+                        parameter = parameters[1].Substring (1);
+                        /* e.g. ["int i = 0", "i < 10", "i++"] */
+                        if (scope.isVariableInScope (variable_initialization.Split (' ') [1])) {
+                            scope.setVariableInScope (variable_modifier); /* Is not the first time for loop has run, e.g. "i" exists*/
+                        } else {
+                            scope.declareVariableInScope (variable_initialization); /* Run first part of for loop for first iteration, e.g. "i" needs to be initialized*/
+                        }
                     }
-                }
 
-                evaluateCondition (parameter, line_parts[0]);
-                break;
-            case Variables.BOOLEAN:
-            case Variables.INTEGER:
-            case Variables.FLOAT:
-            case Variables.STRING:
-                //Primitive Data Types
-                scope.declareVariableInScope (line);
-                break;
-            case Console.NAME:
-            case Plotter.NAME:
-                //Not possible (as far as I know) to hit a function header, so assume it is just a variable declaration
-                scope.declareVariableInScope (line);
-                if (line_parts[0] == Console.NAME) {
-                    //issue with doing this here is that you still ned separate logic when garbage collecting to destroy window...
-                }
-                break;
-            default:
-                VariableObject variable_reference;
-                if (scope.isVariableInScope (line_parts[0])) {
-                    /* CHECK IF LINE REFERS TO A VARIABLE, e.g. "i = 10;" */
-                    scope.setVariableInScope (line);
+                    evaluateCondition (parameter, line_parts[0]);
+                    break;
+                case Variables.BOOLEAN:
+                case Variables.INTEGER:
+                case Variables.FLOAT:
+                case Variables.STRING:
+                    //Primitive Data Types
+                    scope.declareVariableInScope (line);
+                    break;
+                case Console.NAME:
+                case Plotter.NAME:
+                    //Not possible (as far as I know) to hit a function header, so assume it is just a variable declaration
+                    scope.declareVariableInScope (line);
+                    if (line_parts[0] == Console.NAME) {
+                        //issue with doing this here is that you still ned separate logic when garbage collecting to destroy window...
+                    }
+                    break;
+                default:
+                    VariableObject variable_reference;
+                    if (scope.isVariableInScope (line_parts[0])) {
+                        /* CHECK IF LINE REFERS TO A VARIABLE, e.g. "i = 10;" */
+                        scope.setVariableInScope (line);
 
-                } else if (scope.isVariableInScope (line_parts[0].Split('.')[0], out variable_reference)) {
+                    } else if (scope.isVariableInScope (line_parts[0].Split ('.') [0], out variable_reference)) {
 
+                        /* e.g. "console1.Add(...)" */
+                        listener_handler.callListener (line, variable_reference, obj);
+                        debugger += "YES\n\n";
 
-                    /* e.g. "console1.Add(...)" */
-                    listener_handler.callListener (line, variable_reference, obj);
-                    debugger += "YES\n\n";
+                    } else if (function_handler.isFunction (line_parts[0].Split ('(') [0])) {
+                        /* CHECK IF LINE REFERS TO A FUNCTION, e.g. "print(x);" */
+                        FunctionObject function = function_handler.getFunction (line_parts[0].Split ('(') [0]);
+                        scope.push (RangeObject.returnTo (function.range, getPointer ()), false);
 
-                } else if (function_handler.isFunction (line_parts[0].Split ('(') [0])) {
-                    /* CHECK IF LINE REFERS TO A FUNCTION, e.g. "print(x);" */
-                    FunctionObject function = function_handler.getFunction (line_parts[0].Split ('(') [0]);
-                    scope.push (RangeObject.returnTo (function.range, getPointer ()), false);
+                    } else if (listener_handler.isFunction (line_parts[0].Split ('(') [0])) {
 
-                } else if (listener_handler.isFunction (line_parts[0].Split ('(') [0])) {
+                        //TODO:: Not sure if this is accomplishing intended functionality
 
-                    //TODO:: Not sure if this is accomplishing intended functionality
+                        /* CHECK IF LINE REFERS TO A LISTENER, e.g. "Console.PrintLine("test");" */
+                        // listener_handler.callListener (line,  obj);
 
-                    /* CHECK IF LINE REFERS TO A LISTENER, e.g. "Console.PrintLine("test");" */
-                    // listener_handler.callListener (line,  obj);
-
-                } else {
-                    debugger += "Not able to process line" + line;
-                }
-                break;
+                    } else {
+                        debugger += "Not able to process line" + line;
+                    }
+                    break;
+            }
+            if (scope.isFinished ()) return true;
+            else {
+                scope.step ();
+                // listener_handler.updateListeners (this);
+                return false;
+            }
         }
-        if (scope.isFinished ()) return true;
         else {
-            scope.step ();
-            listener_handler.updateListeners (this);
             return false;
         }
     }
@@ -161,8 +168,8 @@ public class Interpreter {
     public int getPointer () {
         return scope.getPointer ();
     }
-    public VariableHandler getVariableHandler() {
-        return scope.getVariableHandler();
+    public VariableHandler getVariableHandler () {
+        return scope.getVariableHandler ();
     }
 
     public override string ToString () {
