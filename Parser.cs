@@ -10,7 +10,10 @@ using UnityEngine;
 public static class Parser {
 
     /* Parser simplifies complex statements into simple ones, managing PEMDAS, function calls, etc. */
-    public static string step (string line_in, VariableHandler variable_handler) {
+    public static string step (string line_in, VariableHandler variable_handler, out bool simplified) {
+
+        /* Assume given line is not fully simplified (or else why call step()) */
+        simplified = false;
 
         if (line_in.Contains (Operators.OPENING_PARENTHESIS)) {
 
@@ -25,16 +28,26 @@ public static class Parser {
             }
             return line_in.Remove (start_of_parenthesis, inner_snippet.Length).Insert (start_of_parenthesis, simplify (inner_snippet));
         }
-        return simplify (line_in);
+        return simplify (line_in, out simplified);
     }
 
-    private static string simplify (string input, VariableHandler variable_handler) {
+    private static string simplify (string input, VariableHandler variable_handler, out bool simplified) {
 
         /* Example input for this function: "4 + 4 * 4" */
         /* Note: Since step() manages any parenthesis-related PEDMAS, so that isn't handled in this function */
 
         /* Splits along spaces, e.g. ["4", "+", "4", "*", "4"] */
         string[] parts = input.Split (Operators.SPLIT, StringSplitOptions.RemoveEmptyEntries);
+
+        /* If line is just "x", replace "x" with x's value */       
+        if (parts.Count == 1)
+        {
+            simplified = true;
+            return variable_handler.getValue (parts[0]);
+        }
+
+        /* Otherwise, parts needs to be condensed before being fully simplified */
+        simplified = false;
 
         /* PEDMAS, e.g. ["4", "+", 4, "*", "4"] ==> ["4", "+", "16"] */
         /* First Modulus, then Multiplication and Division together, then Addition and Subtraction together, etc. */
@@ -56,8 +69,13 @@ public static class Parser {
                         parts[part - 1] = Evaluator.simplify (left, parts[part], right);
                         parts.RemoveRange (part, 2);
 
+                        /* Fully simplified */
+                        if (parts.Length == 1)  {
+                            simplified = true;
+                        }
+
                         /* Recombine parts to resulting, simplified "4 + 16" */
-                        /* Note: It correctly chooses to evaluate multiplication before addition, correctly following PEMDAS */
+                        /* Note: It chooses to evaluate multiplication before addition, correctly following PEMDAS */
                         return String.Join (Operators.SPACE, parts);
                     }
                 }

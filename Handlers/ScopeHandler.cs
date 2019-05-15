@@ -65,6 +65,9 @@ public class ScopeHandler {
         }
         return variables_copy;
     }
+    public VariableHandler getVariableHandler() {
+        return scope.Peek ().variable_handler;
+    }
 
     public void step () {
         if (hasAlreadyStepped == true) {

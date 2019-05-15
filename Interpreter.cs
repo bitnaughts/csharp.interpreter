@@ -13,6 +13,8 @@ public class Interpreter {
     private ListenerHandler listener_handler;
     public FunctionHandler function_handler;
 
+    bool line_simplified;
+
     string variable_type, variable_name, variable_value, variable_modifier, variable_initialization, parameter, condition, debugger;
 
     public Interpreter (string[] script, GameObject obj) {
@@ -29,13 +31,15 @@ public class Interpreter {
 
     /* ... to be described...  (a.k.a. where the magic happens) */
     public bool step () {
+
         debugger += "LINE: " + script[scope.getPointer ()] + "\n";
-        
+
         string line = script[scope.getPointer ()];
 
-        if (line.isSimplified()) {
-
-        }
+        /* ... */
+        line = Parser.step(line, getVariableHandler(), line_simplified); 
+        
+        
         
 
         string[] line_parts = line.Split (' ');
@@ -157,6 +161,10 @@ public class Interpreter {
     public int getPointer () {
         return scope.getPointer ();
     }
+    public VariableHandler getVariableHandler() {
+        return scope.getVariableHandler();
+    }
+
     public override string ToString () {
         string output = debugger + "\n\n";
         // output += compiler.ToString ();
