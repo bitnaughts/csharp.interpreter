@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using UnityEngine;
+
+//TODO: Change color variables
 public class ColorCoder {
     static string hex_values = "0123456789ABCDEF";
     //Color schemes:::

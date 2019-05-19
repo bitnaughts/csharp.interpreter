@@ -2,11 +2,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
 
 public class Interpreter {
 
-    private GameObject obj;
     private string[] script;
 
     private ScopeHandler scope;
@@ -15,10 +13,9 @@ public class Interpreter {
 
     string variable_type, variable_name, variable_value, variable_modifier, variable_initialization, parameter, condition, debugger;
 
-    public Interpreter (string[] script, GameObject obj) {
+    public Interpreter (string[] script) {
         if (script == null) script = new string[] { };
         this.script = script;
-        this.obj = obj;
 
         CompilerHandler compiler = new CompilerHandler (script);
 
@@ -97,7 +94,7 @@ public class Interpreter {
 
 
                     /* e.g. "console1.Add(...)" */
-                    listener_handler.callListener (line, variable_reference, obj);
+                    listener_handler.callListener (line, variable_reference);
                     debugger += "YES\n\n";
 
                 } else if (function_handler.isFunction (line_parts[0].Split ('(') [0])) {
@@ -120,7 +117,7 @@ public class Interpreter {
         if (scope.isFinished ()) return true;
         else {
             scope.step ();
-            listener_handler.updateListeners (scope, obj);
+            listener_handler.updateListeners (scope);
             return false;
         }
     }
