@@ -130,18 +130,18 @@ public class ColorCoder {
         float green = color_in.g * 255f;
         float blue = color_in.b * 255f;
 
-        string a = GetHex (Mathf.Floor (red / 16));
-        string b = GetHex (Mathf.Round (red % 16));
-        string c = GetHex (Mathf.Floor (green / 16));
-        string d = GetHex (Mathf.Round (green % 16));
-        string e = GetHex (Mathf.Floor (blue / 16));
-        string f = GetHex (Mathf.Round (blue % 16));
+        string a = GetHex (Math.Floor (red / 16));
+        string b = GetHex (Math.Round (red % 16));
+        string c = GetHex (Math.Floor (green / 16));
+        string d = GetHex (Math.Round (green % 16));
+        string e = GetHex (Math.Floor (blue / 16));
+        string f = GetHex (Math.Round (blue % 16));
 
         string z = a + b + c + d + e + f;
 
         return z;
     }
-    public static string GetHex (float value) {
+    public static string GetHex (double value) {
         return hex_values[(int) value] + "";
     }
 
