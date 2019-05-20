@@ -1,22 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 
-//TODO: Change color variables
 public class ColorCoder {
     static string hex_values = "0123456789ABCDEF";
     //Color schemes:::
-    public static Color Color_keyword = new Color (88 / 255f, 156 / 255f, 214 / 255f);
-    public static Color Color_variable = new Color (156 / 255f, 220 / 255f, 254 / 255f);
-    public static Color Color_object = new Color (80 / 255f, 200 / 255f, 175 / 255f);
-    public static Color Color_function = new Color (220 / 255f, 220 / 255f, 170 / 255f);
-    public static Color Color_number = new Color (181 / 255f, 206 / 255f, 168 / 255f);
-    public static Color Color_comment = new Color (88 / 255f, 166 / 255f, 77 / 255f);
-    public static Color Color_string = new Color (210 / 255f, 150 / 255f, 100 / 255f);
-    public static Color Color_highlight = new Color (1, 0, 0);
+    public static Color Color_keyword = Color.FromArgb (88, 156, 214);
+    public static Color Color_variable = Color.FromArgb (156, 220, 254);
+    public static Color Color_object = Color.FromArgb (80, 200, 175);
+    public static Color Color_function = Color.FromArgb (220, 220, 170);
+    public static Color Color_number = Color.FromArgb (181, 206, 168);
+    public static Color Color_comment = Color.FromArgb (88, 166, 77);
+    public static Color Color_string = Color.FromArgb (210, 150, 100);
+    public static Color Color_highlight = Color.FromArgb (1, 0, 0);
 
-    public static Color Color_shadedScreen = new Color (16 / 255f, 46 / 255f, 51 / 255f);
-    public static Color Color_screen = new Color (25 / 255f, 61 / 255f, 65 / 255f);
-    public static Color Color_litScreen = new Color (34 / 255f, 76 / 255f, 79 / 255f);
+    public static Color Color_shadedScreen = Color.FromArgb (16, 46, 51);
+    public static Color Color_screen = Color.FromArgb (25, 61, 65);
+    public static Color Color_litScreen = Color.FromArgb (34, 76, 79);
 
     public static string[] keyword_list = { "class", "using", "boolean", "char", "class", "const", "double", "else", "final", "float", "for", "if", "int", "new", "private", "public", "return", "static", "this", "void", "while" };
     public static string[] object_list = { "Console", "Plotter", "Grapher", "String", "System" };
