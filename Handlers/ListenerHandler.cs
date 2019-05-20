@@ -54,10 +54,10 @@ public class ListenerHandler {
 
         //switch (class_name) {
           //  case Classes.CONSOLE:
-          if (class_name == "console1")
+        //   if (class_name == "console1")
                 // Referencer.consoleManager.execute (variable_reference, function_name, function_parameters_arr);
 
-                
+
             //    break;
             //case Classes.PLOTTER:
                 // Referencer.plotterManager.execute (command, "", obj);
