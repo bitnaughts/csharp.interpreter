@@ -41,8 +41,8 @@ class ExampleClass {
 
 ## Naming Convention
 
-Classes: PascalCase
-Static Methods: PascalCase
-Non-static Methods: camelCase
-Fields: snake_case
-Constants: UPPER_SNAKE_CASE
+  - Classes: PascalCase
+  - Static Methods: PascalCase
+  - Non-static Methods: camelCase
+  - Fields: snake_case
+  - Constants: ALL_UPPER_CASE
