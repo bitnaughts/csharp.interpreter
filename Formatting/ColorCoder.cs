@@ -126,9 +126,9 @@ public class ColorCoder {
     /*  Code converted from Danny Lawrence's JavaScript implementation
         http://wiki.unity3d.com/index.php?title=HexConverter        */
     public static string RGBToHex (Color color_in) {
-        float red = color_in.r * 255f;
-        float green = color_in.g * 255f;
-        float blue = color_in.b * 255f;
+        float red = color_in.R * 255f;
+        float green = color_in.G * 255f;
+        float blue = color_in.B * 255f;
 
         string a = GetHex (Math.Floor (red / 16));
         string b = GetHex (Math.Round (red % 16));
