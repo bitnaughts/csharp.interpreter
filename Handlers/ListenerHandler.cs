@@ -55,7 +55,9 @@ public class ListenerHandler {
         //switch (class_name) {
           //  case Classes.CONSOLE:
           if (class_name == "console1")
-                Referencer.consoleManager.execute (variable_reference, function_name, function_parameters_arr);
+                // Referencer.consoleManager.execute (variable_reference, function_name, function_parameters_arr);
+
+                
             //    break;
             //case Classes.PLOTTER:
                 // Referencer.plotterManager.execute (command, "", obj);
@@ -64,7 +66,9 @@ public class ListenerHandler {
     }
     public void updateListeners (ScopeHandler scope) {
         if (has_been_added) {
-            Referencer.consoleManager.execute (Console.NAME, Console.UPDATE, scope.getVariablesInScope (Console.NAME).ToArray());
+            // Referencer.consoleManager.execute (Console.NAME, Console.UPDATE, scope.getVariablesInScope (Console.NAME).ToArray());
+            
+            
             // for (int listener = 0; listener < listeners.Count; listener++) {
             //     switch (listeners[listener]) {
             //         case Classes.CONSOLE:
