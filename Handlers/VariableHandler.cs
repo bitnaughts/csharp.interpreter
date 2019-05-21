@@ -112,7 +112,7 @@ public class VariableHandler {
         variables.Add (new VariableObject (type, name, HashManager.getNewHash ().ToString())); //Hash used to connect it to its UI counterpart
         VariableObject template = VariableObject.getTemplate (type);
         for (int i = 0; i < template.fields.Length; i++) {
-            Logger.Log (values[i]);
+            //Logger.Log (values[i]);
             variables.Add (new VariableObject (template.fields[i].type, name + Operators.DOT + template.fields[i].name, Evaluator.cast (parse (values[i]), template.fields[i].type)));
         }
     }
