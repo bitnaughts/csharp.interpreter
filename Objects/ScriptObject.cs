@@ -1,9 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
 public class ScriptObject {
 
-	public GameObject obj;
 	private string[] script;
 
 	private ProcessorObject processor;
@@ -15,23 +13,22 @@ public class ScriptObject {
 	int line = 0;
 	bool new_line = true;
 
-	public ScriptObject (GameObject obj, string text) {
-		init (obj, text.Split ('\n'));
+	public ScriptObject (string text) {
+		init (text.Split ('\n'));
 	}
-	public ScriptObject (GameObject obj, string[] script) {
-		init (obj, script);
+	public ScriptObject (string[] script) {
+		init (script);
 	}
-	public void init (GameObject obj, string[] script) {
-		this.obj = obj;
+	public void init (string[] script) {
 		this.script = script;
-		interpreter = new Interpreter (script, obj);
+		interpreter = new Interpreter (script);
 		processor = new ProcessorObject ();
 	}
 	public void setScript (string text) {
 		setScript (text.Split ('\n'));
 	}
 	public void setScript (string[] script) {
-		interpreter = new Interpreter (script, obj);
+		interpreter = new Interpreter (script);
 	}
 	public void setProcessor (ProcessorObject processor) {
 		this.processor = processor;
