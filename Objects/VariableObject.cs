@@ -39,7 +39,8 @@ public class VariableObject {
                 case Console.NAME:
                     fields = new VariableObject[] {
                         new VariableObject (Variables.FLOAT, "x", ""),
-                        new VariableObject (Variables.FLOAT, "y", "")
+                        new VariableObject (Variables.FLOAT, "y", ""),
+                        new VariableObject (Variables.STRING, "reference", "")
                     };
                     break;
                 case Plotter.NAME:
