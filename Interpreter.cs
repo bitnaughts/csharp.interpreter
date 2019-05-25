@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -35,6 +35,9 @@ public class Interpreter {
         debugger += "LINE: " + script[getPointer ()] + "\n";
 
         string line = script[getPointer ()];
+        
+        //An important missing step is to keep a backup copy this line to revert to when the line is done...
+        string line_saved =  line;
 
         Logger.Log (debugger);
 
@@ -42,6 +45,7 @@ public class Interpreter {
 
         line = Parser.step (line, getVariableHandler (), out line_simplified);
 
+        //For visualization
         script[getPointer()] = line;
 
         if (line_simplified) {
@@ -64,6 +68,11 @@ public class Interpreter {
                 case Keywords.IF:
                 case Keywords.WHILE:
                 case Keywords.FOR:
+                    
+                    
+                    //Replacing the logic here with substring handler would be much cleaner (also also cleaner in many other parts of the code base)
+                    
+                    
                     /* Add to scope "if scope hasn't been pushed for this yet..." */
                     scope.push (RangeObject.getScopeRange (script, getPointer ()), line_parts[0] != Keywords.IF);
                     /* e.g. "while (i < 10) {" */
