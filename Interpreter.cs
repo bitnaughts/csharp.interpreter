@@ -35,20 +35,20 @@ public class Interpreter {
         current_line = script[getPointer ()];
         
         //An important missing step is to keep a backup copy this line to revert to when the line is done...
-        string line_saved = line;
+        string line_saved = current_line;
 
         Logger.Log (debugger);
 
         /* ... */
 
-        line = Parser.step (line, getVariableHandler (), out line_simplified);
+        current_line = Parser.step (current_line, getVariableHandler (), out line_simplified);
 
         //For visualization
         script[getPointer()] = current_line;
 
         if (line_simplified) {
 
-            string[] line_parts = line.Split (' ');
+            string[] line_parts = current_line.Split (' ');
 
             switch (line_parts[0]) {
                 case Operators.EMPTY:
@@ -99,12 +99,12 @@ public class Interpreter {
                 case Variables.FLOAT:
                 case Variables.STRING:
                     //Primitive Data Types
-                    scope.declareVariableInScope (line);
+                    scope.declareVariableInScope (current_line);
                     break;
                 case Console.NAME:
                 case Plotter.NAME:
                     //Not possible (as far as I know) to hit a function header, so assume it is just a variable declaration
-                    scope.declareVariableInScope (line);
+                    scope.declareVariableInScope (current_line);
                     if (line_parts[0] == Console.NAME) {
                         //issue with doing this here is that you still ned separate logic when garbage collecting to destroy window...
                     }
@@ -113,12 +113,12 @@ public class Interpreter {
                     VariableObject variable_reference;
                     if (scope.isVariableInScope (line_parts[0])) {
                         /* CHECK IF LINE REFERS TO A VARIABLE, e.g. "i = 10;" */
-                        scope.setVariableInScope (line);
+                        scope.setVariableInScope (current_line);
 
                     } else if (scope.isVariableInScope (line_parts[0].Split ('.') [0], out variable_reference)) {
 
                         /* e.g. "console1.Add(...)" */
-                        listener_handler.callListener (line, variable_reference, obj);
+                        // listener_handler.callListener (line, variable_reference, obj);
                         debugger += "YES\n\n";
 
                     } else if (function_handler.isFunction (line_parts[0].Split ('(') [0])) {
@@ -134,7 +134,7 @@ public class Interpreter {
                         // listener_handler.callListener (line,  obj);
 
                     } else {
-                        debugger += "Not able to process line" + line;
+                        debugger += "Not able to process line" + current_line;
                     }
                     break;
             }
