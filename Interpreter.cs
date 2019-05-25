@@ -2,11 +2,9 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
 
 public class Interpreter {
 
-    private GameObject obj;
     private string[] script;
     private string current_line;
 
@@ -18,10 +16,9 @@ public class Interpreter {
 
     string variable_type, variable_name, variable_value, variable_modifier, variable_initialization, parameter, condition, debugger;
 
-    public Interpreter (string[] script, GameObject obj) {
+    public Interpreter (string[] script) {
         if (script == null) script = new string[] { };
         this.script = script;
-        this.obj = obj;
 
         CompilerHandler compiler = new CompilerHandler (script);
 
