@@ -4,6 +4,9 @@ public class RangeObject {
     public int end;
     public int return_to;
 
+    //what index of parts[] called this function? for inline function calls...
+    public int return_to_index;
+
     public RangeObject (int start, int end) {
         this.start = start;
         this.end = end;

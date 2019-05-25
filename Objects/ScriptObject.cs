@@ -41,7 +41,7 @@ public class ScriptObject {
 		while (time >= processor.tick_speed && !finished) {
 			time -= processor.tick_speed;
 			/* Execute a line */
-			finished = interpreter.interpretLine ();
+			finished = interpreter.step ();
 			ran_this_tick = true;
 		}
 		return ran_this_tick;
@@ -66,8 +66,6 @@ public class ScriptObject {
 	}
 
 	public override string ToString () {
-		string output = "";
-		output += interpreter.ToString ();
-		return output;
+		return interpreter.ToString ();
 	}
 }

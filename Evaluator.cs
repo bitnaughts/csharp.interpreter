@@ -37,11 +37,11 @@ public class Evaluator {
     public static string simplifyBooleans (bool left, string arithmetic_operator, bool right) {
         switch (arithmetic_operator) {
             case Operators.EQUAL_TO:
-                return (left == right).ToString ();
+                return (left == right).ToString ().ToLower();
             case Operators.AND:
-                return (left && right).ToString ();
+                return (left && right).ToString ().ToLower();
             case Operators.OR:
-                return (left || right).ToString ();
+                return (left || right).ToString ().ToLower();
             default:
                 return "";
         }
@@ -59,15 +59,15 @@ public class Evaluator {
             case Operators.SUBTRACT:
                 return (left - right).ToString ();
             case Operators.EQUAL_TO:
-                return (left == right).ToString ();
+                return (left == right).ToString ().ToLower();
             case Operators.GREATER_THAN:
-                return (left > right).ToString ();
+                return (left > right).ToString ().ToLower();
             case Operators.GREATER_THAN_EQUAL:
-                return (left >= right).ToString ();
+                return (left >= right).ToString ().ToLower();
             case Operators.LESS_THAN:
-                return (left < right).ToString ();
+                return (left < right).ToString ().ToLower();
             case Operators.LESS_THAN_EQUAL:
-                return (left <= right).ToString ();
+                return (left <= right).ToString ().ToLower();
             default:
                 return "";
         }
@@ -85,15 +85,15 @@ public class Evaluator {
             case Operators.SUBTRACT:
                 return (left - right).ToString ();
             case Operators.EQUAL_TO:
-                return (left == right).ToString ();
+                return (left == right).ToString ().ToLower();
             case Operators.GREATER_THAN:
-                return (left > right).ToString ();
+                return (left > right).ToString ().ToLower();
             case Operators.GREATER_THAN_EQUAL:
-                return (left >= right).ToString ();
+                return (left >= right).ToString ().ToLower();
             case Operators.LESS_THAN:
-                return (left < right).ToString ();
+                return (left < right).ToString ().ToLower();
             case Operators.LESS_THAN_EQUAL:
-                return (left <= right).ToString ();
+                return (left <= right).ToString ().ToLower();
             default:
                 return "";
         }
