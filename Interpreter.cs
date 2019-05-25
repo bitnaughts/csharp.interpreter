@@ -8,6 +8,7 @@ public class Interpreter {
 
     private GameObject obj;
     private string[] script;
+    private string current_line;
 
     private ScopeHandler scope;
     private ListenerHandler listener_handler;
@@ -34,10 +35,10 @@ public class Interpreter {
 
         debugger += "LINE: " + script[getPointer ()] + "\n";
 
-        string line = script[getPointer ()];
+        current_line = script[getPointer ()];
         
         //An important missing step is to keep a backup copy this line to revert to when the line is done...
-        string line_saved =  line;
+        string line_saved = line;
 
         Logger.Log (debugger);
 
@@ -46,7 +47,7 @@ public class Interpreter {
         line = Parser.step (line, getVariableHandler (), out line_simplified);
 
         //For visualization
-        script[getPointer()] = line;
+        script[getPointer()] = current_line;
 
         if (line_simplified) {
 
@@ -174,11 +175,17 @@ public class Interpreter {
         return start_line + 1;
     }
 
+    /* Scope Handler Helper Functions */
     public int getPointer () {
         return scope.getPointer ();
     }
     public VariableHandler getVariableHandler () {
         return scope.getVariableHandler ();
+    }
+
+    /* Visualization Helper Functions */
+    public string getScript() {
+        return String.Join (Operators.NEW_LINE, script)
     }
 
     public override string ToString () {
