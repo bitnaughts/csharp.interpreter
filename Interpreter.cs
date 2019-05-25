@@ -182,7 +182,7 @@ public class Interpreter {
 
     /* Visualization Helper Functions */
     public string getScript() {
-        return String.Join (Operators.NEW_LINE, script)
+        return String.Join (Operators.NEW_LINE, script);
     }
 
     public override string ToString () {
