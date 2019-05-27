@@ -24,8 +24,9 @@ public static class Parser {
             while (inner_snippet.Contains (Operators.OPENING_PARENTHESIS)) {
 
                 start_of_parenthesis += inner_snippet.IndexOf (Operators.OPENING_PARENTHESIS);
-
-                inner_snippet = inner_snippet.Substring (start_of_parenthesis, getLengthToClosingBracket (line_in, start_of_parenthesis));
+                Logger.Log(inner_snippet);
+                inner_snippet = inner_snippet.Substring (start_of_parenthesis, getLengthToClosingBracket (line_in, start_of_parenthesis + 1));
+               
             }
             
             return line_in.Remove (start_of_parenthesis, inner_snippet.Length)
@@ -103,6 +104,6 @@ public static class Parser {
     }
 
     public static string getErrorMessage () {
-        return "Something definitely went wrong here...";
+        return "Parsing Error in this line.";
     }
 }

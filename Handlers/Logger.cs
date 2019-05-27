@@ -7,7 +7,7 @@ class Logger {
 
         //if necessary to debug with this tool, be sure to update the file directory as appropriate
         bool enabled = true;
-        string directory = "C:\\Users\\Mutilar\\Documents\\GitHub\\BitNaughtsUnity\\Assets\\bitnaughts\\Scripts\\Handlers";
+        string directory = Environment.CurrentDirectory;
         string file_name = "log.txt";
 
         if (enabled) {
