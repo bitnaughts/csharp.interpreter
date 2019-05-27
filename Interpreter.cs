@@ -10,7 +10,9 @@ public class Interpreter {
 
     private ScopeHandler scope;
     private ListenerHandler listener_handler;
+    private TemplateHandler template_handler;
     public FunctionHandler function_handler;
+
 
     bool line_simplified;
 
@@ -24,6 +26,9 @@ public class Interpreter {
 
         scope = new ScopeHandler (compiler);
         listener_handler = new ListenerHandler (compiler.handlers);
+
+        template_handler = new TemplateHandler(); //Will want to include information from compiler: build templates for all functions in scope
+
         function_handler = compiler.function_handler;
     }
 
