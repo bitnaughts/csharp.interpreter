@@ -12,12 +12,15 @@ public class CompilerHandler {
     public int main_function_line;
 
     public List<string> handlers;
+    public List<Template> template_list;
+
     public FunctionHandler function_handler;
     public ScopeObject base_scope;
     // public List<VariableObject> variables;
 
     public CompilerHandler (string[] script) {
         handlers = new List<string> ();
+        template_list = new List<Template> ();
         base_scope = new ScopeObject (new RangeObject(-1, 1000), false);
         function_handler = new FunctionHandler ();
 
@@ -54,8 +57,18 @@ public class CompilerHandler {
                         case Variables.INTEGER:
                         case Variables.FLOAT:
                         case Variables.STRING:
-                            if (line_parts[1].Contains (Operators.OPENING_PARENTHESIS)) {
+                            if (line.Contains (Operators.OPENING_PARENTHESIS)) {
                                 /* Function declaration, e.g. "void sum (int x, int y) {" */
+                                // string[] parameters = line.Split(",");
+                                // if (parameters.Length == 0) {
+                                //     Template function_template = new Template(line_parts[1], null);   
+                                // }
+                                // if (parameters.Length == 1) {
+
+                                // }
+                                Template function_template = new Template(line_parts[1], null);
+                                template_list.Add(function_template);
+
                                 function_handler.declareFunction (line, RangeObject.getScopeRange (script, i));
                             } else {
                                 /* Variable declaration, e.g. "int y;" */

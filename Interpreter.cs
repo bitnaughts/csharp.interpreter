@@ -13,7 +13,6 @@ public class Interpreter {
     private TemplateHandler template_handler;
     public FunctionHandler function_handler;
 
-
     bool line_simplified;
 
     string variable_type, variable_name, variable_value, variable_modifier, variable_initialization, parameter, condition, debugger;
@@ -27,7 +26,7 @@ public class Interpreter {
         scope = new ScopeHandler (compiler);
         listener_handler = new ListenerHandler (compiler.handlers);
 
-        template_handler = new TemplateHandler(); //Will want to include information from compiler: build templates for all functions in scope
+        template_handler = new TemplateHandler (compiler.template_list); //Will want to include information from compiler: build templates for all functions in scope
 
         function_handler = compiler.function_handler;
     }
@@ -38,7 +37,7 @@ public class Interpreter {
         debugger += "LINE: " + script[getPointer ()] + "\n";
 
         current_line = script[getPointer ()];
-        
+
         //An important missing step is to keep a backup copy this line to revert to when the line is done...
         string line_saved = current_line;
 
@@ -49,7 +48,7 @@ public class Interpreter {
         current_line = Parser.step (current_line, getVariableHandler (), out line_simplified);
 
         //For visualization
-        script[getPointer()] = current_line;
+        script[getPointer ()] = current_line;
 
         if (line_simplified) {
 
@@ -71,11 +70,9 @@ public class Interpreter {
                 case Keywords.IF:
                 case Keywords.WHILE:
                 case Keywords.FOR:
-                    
-                    
+
                     //Replacing the logic here with substring handler would be much cleaner (also also cleaner in many other parts of the code base)
-                    
-                    
+
                     /* Add to scope "if scope hasn't been pushed for this yet..." */
                     scope.push (RangeObject.getScopeRange (script, getPointer ()), line_parts[0] != Keywords.IF);
                     /* e.g. "while (i < 10) {" */
@@ -149,8 +146,7 @@ public class Interpreter {
                 // listener_handler.updateListeners (this);
                 return false;
             }
-        }
-        else {
+        } else {
             return false;
         }
     }
@@ -186,7 +182,7 @@ public class Interpreter {
     }
 
     /* Visualization Helper Functions */
-    public string getScript() {
+    public string getScript () {
         return String.Join (Operators.NEW_LINE, script);
     }
 
