@@ -17,16 +17,33 @@ public static class SubstringHandler {
         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         Substring(string, string): Retrives a substring starting and ending at a given string
      */
-    public static string Substring(string line, string start, Enum start_scan_option, string end, Enum end_scan_option) {      
+    public static string Substring (string line, string start, Enum start_scan_option, string end, Enum end_scan_option) {
 
+        switch (start_scan_option) {
+            case SCAN_OPTION.FIRST_OCCURANCE:
+                line = line.Substring(line.IndexOf(start));
+                break;
+            case SCAN_OPTION.FIRST_OCCURANCE_IN_SAME_SCOPE:
 
+                break;
+            case start_scan_option.LAST_OCCURANCE:
+                line = line.Substring(line.LastIndexOf(start));
+                break;
+        }
+        switch (end_scan_option) {
+            case SCAN_OPTION.FIRST_OCCURANCE:
+                line = line.Substring(0, line.IndexOf(end));
+                break;
+            case SCAN_OPTION.FIRST_OCCURANCE_IN_SAME_SCOPE:
 
+                break;
+            case start_scan_option.LAST_OCCURANCE:
+                line = line.Substring(0, line.LastIndexOf(end));
+                break;
+        }
+        
 
-                                 return "test"       ;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
-
-
-
+        return "|Substring Handler Error|";
     }
 
-    
 }
