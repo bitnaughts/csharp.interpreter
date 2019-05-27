@@ -45,10 +45,20 @@ public class Interpreter {
 
         /* ... */
 
+        //if (test < 10) {
+        //for (int i = 0; i < 10; i++) {
+        string[] line_parameters = SubstringHandler.Split(current_line, Operators.SPLIT_PARAMETERS);
+        //"if ", "test < 10", " {"
+        //"for ", "int i = 0", " i < 10", "i++", " {"
+        
+
+
         current_line = Parser.step (current_line, getVariableHandler (), out line_simplified);
 
         //For visualization
         script[getPointer ()] = current_line;
+
+
 
         if (line_simplified) {
 

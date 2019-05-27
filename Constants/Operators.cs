@@ -1,6 +1,7 @@
 ﻿public static class Operators {
     public const string EMPTY = "",
         SPACE = " ",
+        COMMA = ",",
         DOT = ".",
         EQUALS = "=",
         INCREMENT = "++",
@@ -48,5 +49,8 @@
 
     /* For the String.Split() function */
     public static readonly string[] SPLIT = new string[] { SPACE };
+
+    /* For the SubstringHandler.Split() function */
+    public static readonly string[] SPLIT_PARAMETERS = new string[] { OPENING_PARENTHESIS, END_LINE, COMMA, CLOSING_PARENTHESIS };
 
 }
