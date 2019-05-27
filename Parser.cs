@@ -25,10 +25,11 @@ public static class Parser {
 
                 start_of_parenthesis += inner_snippet.IndexOf (Operators.OPENING_PARENTHESIS);
                 Logger.Log(inner_snippet);
-                inner_snippet = inner_snippet.Substring (start_of_parenthesis, getLengthToClosingParenthesis(line_in, start_of_parenthesis));
+                inner_snippet = inner_snippet.Substring(inner_snippet.IndexOf(Operators.OPENING_PARENTHESIS) + 1);
+                inner_snippet = inner_snippet.Substring(0, getLengthToClosingParenthesis(inner_snippet, 0));
             }
             
-            return line_in.Remove (start_of_parenthesis, inner_snippet.Length)
+            return line_in.Remove (start_of_parenthesis, inner_snippet.Length + 2)
                 .Insert (start_of_parenthesis, simplify (inner_snippet, variable_handler, out simplified));
         }
         return simplify (line_in, variable_handler, out simplified);
