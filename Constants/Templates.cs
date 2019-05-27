@@ -1,11 +1,15 @@
 ﻿public static class Templates {
     public const string[, ]  IF = [[Operators.OPENING_PARENTHESIS, Operators.CLOSING_PARENTHESIS]],
-        WHILE = "while",
-        FOR = "for",
-        STATIC = "static",
-        NEW = "new",
-        NULL = "null",
-        LIBRARY_IMPORT = "using";
+        WHILE = [[Operators.OPENING_PARENTHESIS, Operators.CLOSING_PARENTHESIS]],
+        FOR = [[Operators.EQUALS, Operators.END_LINE], [Operators.END_LINE, Operators.END_LINE], [Operators.END_LINE, Operators.CLOSING_PARENTHESIS]];
+}
 
-    // public const string[] ALL_KEYWORDS = { BREAK, CONTINUE, IF, WHILE, FOR, LIBRARY_IMPORT };
+public class Template {
+    public string key;
+    public string[,] template_array;
+
+    public Template(string key, string[,] template_array) {
+        this.key = key;
+        this.template_array = template_array;
+    }
 }
