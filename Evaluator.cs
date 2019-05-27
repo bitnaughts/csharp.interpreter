@@ -53,6 +53,7 @@ public class Evaluator {
             case Operators.TIMES:
                 return (left * right).ToString ();
             case Operators.DIVIDE:
+                if (right == 0) return 0.ToString();
                 return (left / right).ToString ();
             case Operators.ADD:
                 return (left + right).ToString ();
