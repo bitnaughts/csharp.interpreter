@@ -25,11 +25,11 @@ public static class Parser {
 
                 start_of_parenthesis += inner_snippet.IndexOf (Operators.OPENING_PARENTHESIS);
                 Logger.Log(inner_snippet);
-                inner_snippet = inner_snippet.Substring (start_of_parenthesis, getLengthToClosingBracket (line_in, start_of_parenthesis + 1));
-               
+                inner_snippet = inner_snippet.Substring(inner_snippet.IndexOf(Operators.OPENING_PARENTHESIS) + 1);
+                inner_snippet = inner_snippet.Substring(0, getLengthToClosingParenthesis(inner_snippet, 0));
             }
             
-            return line_in.Remove (start_of_parenthesis, inner_snippet.Length)
+            return line_in.Remove (start_of_parenthesis, inner_snippet.Length + 2)
                 .Insert (start_of_parenthesis, simplify (inner_snippet, variable_handler, out simplified));
         }
         return simplify (line_in, variable_handler, out simplified);
@@ -87,16 +87,16 @@ public static class Parser {
         return getErrorMessage ();
     }
 
-    public static int getLengthToClosingBracket (string line_in, int start_index) {
+    public static int getLengthToClosingParenthesis (string line_in, int start_index) {
 
         int count = 0;
         int parenthesis_count = 1;
 
         while (parenthesis_count > 0) {
             count++;
-            if (line_in[start_index + count].ToString () == Operators.OPENING_BRACKET) {
+            if (line_in[start_index + count].ToString () == Operators.OPENING_PARENTHESIS) {
                 parenthesis_count++;
-            } else if (line_in[start_index + count].ToString () == Operators.CLOSING_BRACKET) {
+            } else if (line_in[start_index + count].ToString () == Operators.CLOSING_PARENTHESIS) {
                 parenthesis_count--;
             }
         }
