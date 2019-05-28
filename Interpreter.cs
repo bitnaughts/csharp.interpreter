@@ -41,28 +41,27 @@ public class Interpreter {
         //An important missing step is to keep a backup copy this line to revert to when the line is done...
         string line_saved = current_line;
 
-        Logger.Log (debugger);
-
         /* ... */
 
         //if (test < 10) {
         //for (int i = 0; i < 10; i++) {
-        string[] line_parameters = SubstringHandler.Split(current_line, Operators.SPLIT_PARAMETERS);
-        //"if ", "test < 10", " {"
-        //"for ", "int i = 0", " i < 10", "i++", " {"
-        
+        // string[] line_parameters = SubstringHandler.Split(current_line, Operators.SPLIT_PARAMETERS);
+        //"if", "test < 10", "{"
+        //"for", "int i = 0", "i < 10", "i++", "{"
 
+        // debugger += "\n" + current_line;
+        // for (int i = 0; i < line_parameters.Length; i++) {
+        //     debugger += "\n|" + line_parameters[i] + "|";
+        // }
 
-        current_line = Parser.step (current_line, getVariableHandler (), out line_simplified);
+        // current_line = Parser.step (current_line, getVariableHandler (), out line_simplified);
 
         //For visualization
-        script[getPointer ()] = current_line;
+        // script[getPointer ()] = current_line;
 
+        if (line_simplified || true) {
 
-
-        if (line_simplified) {
-
-            string[] line_parts = current_line.Split (' ');
+            string[] line_parts = current_line.Split (Operators.SPACE[0]);
 
             switch (line_parts[0]) {
                 case Operators.EMPTY:
@@ -79,32 +78,43 @@ public class Interpreter {
                     break;
                 case Keywords.IF:
                 case Keywords.WHILE:
-                case Keywords.FOR:
 
-                    //Replacing the logic here with substring handler would be much cleaner (also also cleaner in many other parts of the code base)
+                    string[] line_parameters = SubstringHandler.Split (current_line, Operators.SPLIT_PARAMETERS);
+                    line_parameters[1] = Parser.step (line_parameters[1], getVariableHandler (), out line_simplified);
 
-                    /* Add to scope "if scope hasn't been pushed for this yet..." */
-                    scope.push (RangeObject.getScopeRange (script, getPointer ()), line_parts[0] != Keywords.IF);
-                    /* e.g. "while (i < 10) {" */
-                    parameter = Operators.EMPTY;
-                    for (int i = 1; i < line_parts.Length - 1; i++) parameter += line_parts[i] + " ";
-                    parameter = parameter.Substring (1, parameter.Length - 3);
+                    script[getPointer ()] = line_parts[0] + " (" + line_parameters[1] + ") {";
 
-                    if (line_parts[0] == Keywords.FOR) {
-                        /* e.g. "int i = 0; i < 10; i++" */
-                        string[] parameters = parameter.Split (Operators.END_LINE_CHAR);
-                        variable_initialization = parameters[0];
-                        variable_modifier = parameters[2].Substring (1);
-                        parameter = parameters[1].Substring (1);
-                        /* e.g. ["int i = 0", "i < 10", "i++"] */
-                        if (scope.isVariableInScope (variable_initialization.Split (' ') [1])) {
-                            scope.setVariableInScope (variable_modifier); /* Is not the first time for loop has run, e.g. "i" exists*/
-                        } else {
-                            scope.declareVariableInScope (variable_initialization); /* Run first part of for loop for first iteration, e.g. "i" needs to be initialized*/
-                        }
+                    if (line_simplified) {
+
+                        scope.push (RangeObject.getScopeRange (script, getPointer ()), line_parts[0] != Keywords.IF);
+                        evaluateCondition (parameter, line_parts[0]);
                     }
 
-                    evaluateCondition (parameter, line_parts[0]);
+                    break;
+                case Keywords.FOR:
+
+                    /* Add to scope "if scope hasn't been pushed for this yet..." */
+                    // scope.push (RangeObject.getScopeRange (script, getPointer ()), line_parts[0] != Keywords.IF);
+                    // /* e.g. "while (i < 10) {" */
+                    // parameter = Operators.EMPTY;
+                    // for (int i = 1; i < line_parts.Length - 1; i++) parameter += line_parts[i] + " ";
+                    // parameter = parameter.Substring (1, parameter.Length - 3);
+
+                    // if (line_parts[0] == Keywords.FOR) {
+                    //     /* e.g. "int i = 0; i < 10; i++" */
+                    //     string[] parameters = parameter.Split (Operators.END_LINE_CHAR);
+                    //     variable_initialization = parameters[0];
+                    //     variable_modifier = parameters[2].Substring (1);
+                    //     parameter = parameters[1].Substring (1);
+                    //     /* e.g. ["int i = 0", "i < 10", "i++"] */
+                    //     if (scope.isVariableInScope (variable_initialization.Split (' ') [1])) {
+                    //         scope.setVariableInScope (variable_modifier); /* Is not the first time for loop has run, e.g. "i" exists*/
+                    //     } else {
+                    //         scope.declareVariableInScope (variable_initialization); /* Run first part of for loop for first iteration, e.g. "i" needs to be initialized*/
+                    //     }
+                    // }
+
+                    // evaluateCondition (parameter, line_parts[0]);
                     break;
                 case Variables.BOOLEAN:
                 case Variables.INTEGER:
@@ -152,7 +162,9 @@ public class Interpreter {
             }
             if (scope.isFinished ()) return true;
             else {
-                scope.step ();
+                if (line_simplified) {
+                    scope.step ();
+                }
                 // listener_handler.updateListeners (this);
                 return false;
             }
