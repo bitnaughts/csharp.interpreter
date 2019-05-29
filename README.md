@@ -17,7 +17,7 @@ BitNaughts is a true open-source project. If you'd like to contribute to the int
 
 ## Examples
 
-```
+```cs 
 using Console;
 class ExampleClass {
     int tester = 10;
