@@ -12,11 +12,20 @@ public static class SubstringHandler {
 
         return line;
     }
-
-    public static string[] Split (string line, string delimiter) {
-        return Split (line, new string[] { delimiter });
+    
+    /* For things like: "if (x < 10) {", "func (x + 10);", we care about splitting inside of the ()s. */
+    public static string[] SplitFunction (string line, string[] delimiters) {
+        return Split(line, delimiters, 1);
     }
-    public static string[] Split (string line, string[] delimiters) {
+    /* For things like "int i = 10 + func(x);", we don't want to split inside of the ()s yet. */
+    public static string[] SplitRegularStatement (string line, string[] delimiters) {
+        return Split(line, delimiters, 0);
+    }
+    
+    public static string[] Split (string line, string delimiter, int split_below) {
+        return Split (line, new string[] { delimiter }, split_below);
+    }
+    public static string[] Split (string line, string[] delimiters, int split_below) {
 
         List<string> line_parameters = new List<string> ();
         line_parameters.Add ("");
@@ -42,7 +51,7 @@ public static class SubstringHandler {
                 line_parameters[index] += line[i];
             } else {
 
-                bool is_valid_delimiter = (parenthesis_level <= 1) && !(parenthesis_level == 1 && line[i].ToString() == Operators.CLOSING_PARENTHESIS);
+                bool is_valid_delimiter = (parenthesis_level <= split_below) && !(parenthesis_level == split_below && line[i].ToString() == Operators.CLOSING_PARENTHESIS);
                
                 if (is_valid_delimiter) {
                     line_parameters.Add (""); 
