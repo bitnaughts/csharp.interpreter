@@ -44,12 +44,4 @@
     public static class Literal {
         public const string NULL = "null", TRUE = "true", FALSE = "false", DEFAULT = "default";
     }
-     
-   
-        STATIC = "static",
-        NEW = "new",
-        NULL = "null",
-        LIBRARY_IMPORT = "using";
-
-    // public const string[] ALL_KEYWORDS = { BREAK, CONTINUE, IF, WHILE, FOR, LIBRARY_IMPORT };
-}
+ }
