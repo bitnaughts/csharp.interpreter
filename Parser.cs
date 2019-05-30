@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -11,8 +11,22 @@ public static class Parser {
     /* Parser simplifies complex statements into simple ones, managing PEMDAS, function calls, etc. */
     public static string step (string line_in, VariableHandler variable_handler, out bool simplified) {
 
-        /* Assume given line is not fully simplified (or else why call step()) */
+        /* Assume given line is not fully simplified until proven otherwise */
         simplified = false;
+        
+        
+        //This might be more appropriate in Interpreter.cs, as parser should be specialized only for shortening expressions/functions...
+        /* If there is a variable declaration in the current line, e.g. "i = 10 + 20" or "int i = 10 + 20" */
+        if (line_in.Contains(Operators.SPACE + Operators.EQUALS + Operators.SPACE)) { //to avoid being confused with ==, etc.
+
+            string[] line_parts = line_in.Split(Operators.SPACE + Operators.EQUALS + Operators.SPACE);
+            string variable_information = line_parts[0]; // "i"
+            string value_information = line_parts[1]; // "10 + 20" ==> "30"...
+            
+            //line_in = line_in.Substring(line_in.IndexOf(Operators.SPACE + Operators.EQUALS + Operators.SPACE) + 3);
+            //Might need some sort of promise to set variable to fully simplified value...
+            //Also for rebuilding full line back to "i = 30" at the end...
+        }
 
         /* Handling parenthesis, whether for PEDMAS manipulation or function calls */
         if (line_in.Contains (Operators.OPENING_PARENTHESIS)) {
