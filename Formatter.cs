@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 
-public class ColorCoder {
+public class Formatter {
     static string hex_values = "0123456789ABCDEF";
     //Color schemes:::
     public static Color Color_keyword = Color.FromArgb (88, 156, 214);
@@ -94,10 +94,10 @@ public class ColorCoder {
     }
 
     public static string highlight (string line) {
-        return "<color=#" + ColorCoder.getHighlightColor () + "55>" + line + "</mark>";
+        return "<color=#" + getHighlightColor () + "55>" + line + "</mark>";
     }
     public static string comment (string line) {
-        return line.Substring (0, line.IndexOf ("//")) + "<color=#" + ColorCoder.getCommentColor () + ">" + line.Substring (line.IndexOf ("//")) + "</color>";
+        return line.Substring (0, line.IndexOf ("//")) + "<color=#" + getCommentColor () + ">" + line.Substring (line.IndexOf ("//")) + "</color>";
     }
     public static string getShadedScreenColor () {
         return RGBToHex (Color_shadedScreen);
