@@ -1,3 +1,5 @@
+![banner](https://raw.githubusercontent.com/bitnaughts/bitnaughts.assets/master/images/banner.png)
+
 # BitNaughts' C# Intepreter
 
 A glorified string parser, the Interpreter reads heavily-linted C# syntax and triggers events in BitNaughts based on what it reads. It current supports:
