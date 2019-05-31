@@ -59,6 +59,23 @@ public class Interpreter {
         //For visualization
         // script[getPointer ()] = current_line;
 
+
+
+        //This might be more appropriate in Interpreter.cs, as parser should be specialized only for shortening expressions/functions...
+        /* If there is a variable declaration in the current line, e.g. "i = 10 + 20" or "int i = 10 + 20" */
+        //if (line_in.Contains(Operators.SPACE + Operators.EQUALS + Operators.SPACE))
+        //{ //to avoid being confused with ==, etc.
+
+            //string[] line_parts = line_in.Split(Operators.SPACE + Operators.EQUALS + Operators.SPACE);
+            //string variable_information = line_parts[0]; // "i"
+            //string value_information = line_parts[1]; // "10 + 20" ==> "30"...
+
+            //line_in = line_in.Substring(line_in.IndexOf(Operators.SPACE + Operators.EQUALS + Operators.SPACE) + 3);
+            //Might need some sort of promise to set variable to fully simplified value...
+            //Also for rebuilding full line back to "i = 30" at the end...
+        //}
+
+
         if (line_simplified || true) {
 
             string[] line_parts = current_line.Split (Operators.SPACE[0]);
@@ -66,32 +83,32 @@ public class Interpreter {
             switch (line_parts[0]) {
                 case Operators.EMPTY:
                     break;
-                case Keywords.BREAK:
+                case Operators.CLOSING_BRACKET:
+                    if (scope.isLooping()) scope.back();
+                    else scope.pop();
+                    break;
+                case Keywords.Statement.Jump.BREAK:
                     scope.pop ();
                     break;
-                case Operators.CLOSING_BRACKET:
-                    if (scope.isLooping ()) scope.back ();
-                    else scope.pop ();
-                    break;
-                case Keywords.CONTINUE:
+                case Keywords.Statement.Jump.CONTINUE:
                     scope.back ();
                     break;
-                case Keywords.IF:
-                case Keywords.WHILE:
+                case Keywords.Statement.Selection.IF:
+                case Keywords.Statement.Iteration.WHILE:
 
-                    string[] line_parameters = SubstringHandler.Split (current_line, Operators.SPLIT_PARAMETERS);
+                    string[] line_parameters = SubstringHandler.SplitFunction (current_line, Operators.SPLIT_PARAMETERS);
                     line_parameters[1] = Parser.step (line_parameters[1], getVariableHandler (), out line_simplified);
 
                     script[getPointer ()] = line_parts[0] + " (" + line_parameters[1] + ") {";
 
                     if (line_simplified) {
 
-                        scope.push (RangeObject.getScopeRange (script, getPointer ()), line_parts[0] != Keywords.IF);
+                        scope.push (RangeObject.getScopeRange (script, getPointer ()), line_parts[0] != Keywords.Statement.Selection.IF);
                         evaluateCondition (parameter, line_parts[0]);
                     }
 
                     break;
-                case Keywords.FOR:
+                case Keywords.Statement.Iteration.FOR:
 
                     /* Add to scope "if scope hasn't been pushed for this yet..." */
                     // scope.push (RangeObject.getScopeRange (script, getPointer ()), line_parts[0] != Keywords.IF);
@@ -116,21 +133,21 @@ public class Interpreter {
 
                     // evaluateCondition (parameter, line_parts[0]);
                     break;
-                case Variables.BOOLEAN:
-                case Variables.INTEGER:
-                case Variables.FLOAT:
-                case Variables.STRING:
+                case Keywords.Type.Value.BOOLEAN:
+                case Keywords.Type.Value.INTEGER:
+                case Keywords.Type.Value.FLOAT:
+                case Keywords.Type.Reference.STRING:
                     //Primitive Data Types
                     scope.declareVariableInScope (current_line);
                     break;
-                case Console.NAME:
-                case Plotter.NAME:
+                //case Console.NAME:
+                //case Plotter.NAME:
                     //Not possible (as far as I know) to hit a function header, so assume it is just a variable declaration
-                    scope.declareVariableInScope (current_line);
-                    if (line_parts[0] == Console.NAME) {
+                    //scope.declareVariableInScope (current_line);
+                    //if (line_parts[0] == Console.NAME) {
                         //issue with doing this here is that you still ned separate logic when garbage collecting to destroy window...
-                    }
-                    break;
+                    //}
+                    //break;
                 default:
                     VariableObject variable_reference;
                     if (scope.isVariableInScope (line_parts[0])) {
@@ -174,7 +191,7 @@ public class Interpreter {
     }
 
     private void evaluateCondition (string input, string type) {
-        input = Evaluator.cast (scope.parseInScope (input), Variables.BOOLEAN);
+        input = Evaluator.cast (scope.parseInScope (input), Keywords.Type.Value.BOOLEAN);
 
         if (bool.Parse (input) == true) {
             //...

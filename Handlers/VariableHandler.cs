@@ -53,7 +53,7 @@ public class VariableHandler {
         variable_name = parts[1];
         variable_value = Operators.EMPTY;
 
-        if (parts[3] == Keywords.NEW) {
+        if (parts[3] == Keywords.Operator.NEW) {
             for (int i = 4; i < parts.Length; i++) {
                 variable_value += parts[i] + " ";
             }

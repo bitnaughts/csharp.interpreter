@@ -31,20 +31,20 @@ public class VariableObject {
 
             case "Vector2":
             fields = new VariableObject[] {
-            new VariableObject (Variables.FLOAT, "x", value.Split (',') [0]),
-            new VariableObject (Variables.FLOAT, "y", value.Split (',') [1])
+            new VariableObject (Keywords.Type.Value.FLOAT, "x", value.Split (',') [0]),
+            new VariableObject (Keywords.Type.Value.FLOAT, "y", value.Split (',') [1])
                     };
                     break;
                 case Console.NAME:
                     fields = new VariableObject[] {
-                        new VariableObject (Variables.FLOAT, "x", ""),
-                        new VariableObject (Variables.FLOAT, "y", ""),
-                        new VariableObject (Variables.STRING, "reference", "")
+                        new VariableObject (Keywords.Type.Value.FLOAT, "x", ""),
+                        new VariableObject (Keywords.Type.Value.FLOAT, "y", ""),
+                        new VariableObject (Keywords.Type.Reference.STRING, "reference", "")
                     };
                     break;
                 case Plotter.NAME:
                     fields = new VariableObject[] {
-                        new VariableObject (Variables.STRING, "value", "")
+                        new VariableObject (Keywords.Type.Reference.STRING, "value", "")
                     };
                     break;
                 default:

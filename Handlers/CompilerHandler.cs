@@ -43,7 +43,7 @@ public class CompilerHandler {
                     /* Outside Class declaration, for imports */
                     line_parts = line.Split (' ');
                     switch (line_parts[0]) {
-                        case Keywords.LIBRARY_IMPORT:
+                        case Keywords.Namespace.USING:
                             handlers.Add (line_parts[1].Substring (0, line_parts[1].Length - 1));
                             break;
                     }
@@ -52,11 +52,11 @@ public class CompilerHandler {
                     /* Inside Class declaration, but not inside any functions */
                     line_parts = line.Split (' ');
                     switch (line_parts[0]) {
-                        case Variables.VOID:
-                        case Variables.BOOLEAN:
-                        case Variables.INTEGER:
-                        case Variables.FLOAT:
-                        case Variables.STRING:
+                        case Keywords.Type.VOID:
+                        case Keywords.Type.Value.BOOLEAN:
+                        case Keywords.Type.Value.INTEGER:
+                        case Keywords.Type.Value.FLOAT:
+                        case Keywords.Type.Reference.STRING:
                             if (line.Contains (Operators.OPENING_PARENTHESIS)) {
                                 /* Function declaration, e.g. "void sum (int x, int y) {" */
                                 // string[] parameters = line.Split(",");
@@ -75,7 +75,7 @@ public class CompilerHandler {
                                 base_scope.variable_handler.declareVariable (line);
                             }
                             break;
-                        case Keywords.STATIC:
+                        case Keywords.Modifier.STATIC:
                             /* the Main function is the only static function allowed */
                             main_function_line = i;
                             break;

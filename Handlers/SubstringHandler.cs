@@ -5,7 +5,7 @@ using System.Linq;
 
 public static class SubstringHandler {
 
-    public static string Swap(string line, imt start_index, string old_string, string new_string) {
+    public static string Swap(string line, int start_index, string old_string, string new_string) {
         
         //to be implemented, removes old portion of line and adds in new portion... relevant for parser functionality
         //start index ensures correct string is removed (if there are repeats of a given string)

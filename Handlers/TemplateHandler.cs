@@ -8,9 +8,9 @@ public class TemplateHandler {
     public TemplateHandler(List<Template> template_list) {
 
         /* Standard Templates */
-        addTemplate(Keywords.IF, Templates.IF);
-        addTemplate(Keywords.WHILE, Templates.WHILE);
-        addTemplate(Keywords.FOR, Templates.FOR);
+        //addTemplate(Keywords.IF, Templates.IF);
+        //addTemplate(Keywords.WHILE, Templates.WHILE);
+        //addTemplate(Keywords.FOR, Templates.FOR);
 
         /* Precompiled functions within scope (also based on usings...) */
         for (int i = 0; i < template_list.Count; i++) {
