@@ -4,7 +4,7 @@ public class ScopeHandler {
 
     private int pointer;
 
-    private Stack<ScopeNode> scope;
+    private Stack<ScopeObject> scope;
 
     //Available Functions to Call
     //might need to make a "FunctionObject" for this to keep track of potential parameters/return types....
@@ -13,18 +13,29 @@ public class ScopeHandler {
     private bool hasFinished;
 
     public ScopeHandler (CompilerHandler compiled_script) {
-        scope = new Stack<ScopeNode> ();
+        scope = new Stack<ScopeObject> ();
         scope.Push (compiled_script.base_scope);
 
-        pointer = compiled_script.main_function_line;
+        pointer = compiled_script.main_function_line + 1;
 
         hasAlreadyStepped = false;
         hasFinished = false;
     }
-
     public bool isVariableInScope (string name) {
         if (scope.Count == 0) return false;
         return scope.Peek ().variable_handler.isVariable (name);
+    }
+    public bool isVariableInScope (string name, out VariableObject variable_reference) {
+        
+        variable_reference = null;
+        if (scope.Count == 0) return false;
+        int index;
+        if (scope.Peek ().variable_handler.isVariable (name, out index))
+        {
+            variable_reference = scope.Peek ().variable_handler.getVariable(index);
+            return true;
+        }
+        return false;
     }
     public void setVariableInScope (string line) {
         if (scope.Count == 0) return;
@@ -54,6 +65,9 @@ public class ScopeHandler {
         }
         return variables_copy;
     }
+    public VariableHandler getVariableHandler() {
+        return scope.Peek ().variable_handler;
+    }
 
     public void step () {
         if (hasAlreadyStepped == true) {
@@ -62,13 +76,13 @@ public class ScopeHandler {
             pointer++;
         }
     }
-    public void push (Range range) {
+    public void push (RangeObject range) {
         push (range, false);
     }
-    public void push (Range range, bool isLooping) {
+    public void push (RangeObject range, bool isLooping) {
         //Add all existing variables to new scope
         if (scope.Count == 0 || scope.Peek ().getStartLine () != range.start) {
-            ScopeNode node = new ScopeNode (range, getVariablesInScope (), isLooping);
+            ScopeObject node = new ScopeObject (range, getVariablesInScope (), isLooping);
             scope.Push (node);
 
             pointer = range.start;
@@ -125,7 +139,7 @@ public class ScopeHandler {
     // }
     public override string ToString () {
         string output = "\n" + pointer + "\n";
-        ScopeNode[] scope_array = scope.ToArray ();
+        ScopeObject[] scope_array = scope.ToArray ();
         for (int i = 0; i < scope_array.Length; i++) {
             output += i + ":\t" + scope_array[i].ToString () + "\n";
         }

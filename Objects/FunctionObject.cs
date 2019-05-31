@@ -2,10 +2,10 @@ public class FunctionObject {
 
     public string return_type;
     public string name;
-    public Range range;
+    public RangeObject range;
     VariableObject[] parameters;
 
-    public FunctionObject (string return_type, string name, Range range, VariableObject[] parameters) {
+    public FunctionObject (string return_type, string name, RangeObject range, VariableObject[] parameters) {
         this.return_type = return_type;
         this.name = name;
         this.range = range;

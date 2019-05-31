@@ -1,43 +1,48 @@
-# BitNaughts (Interpreter)
+# BitNaughts' C# Intepreter
+
+A glorified string parser, the Interpreter reads heavily-linted C# syntax and triggers events in BitNaughts based on what it reads. It current supports:
+
+  - Global and Local Variables (primitive data types only)
+  - Variable Manipulation (PEMDAS, modulo)
+  - Garbage Collection
+  - Conditional Flow Control (if, for, while)
+  - Function Calls (recursive functions to be tested)
+
+Future additions include:
+  - More Data Types (objects, e.g. Vector2)
+  - Code Editor/Writer
+  - ... and much more
+
+BitNaughts is a true open-source project. If you'd like to contribute to the interpreter, feel free to make a pull request! 
 
 ## Examples
 
-Console.Open(this.script);
-int i = 0;
-if (i < 100) {
-
-    while (i < 200) {
-        i++;
-        this.
-        this.rotation = i;
+```cs 
+using Console;
+class ExampleClass {
+    int tester = 10;
+    static void Main() {
+            int angle = 1;
+            for (int x = 0; x < 10; x++) {
+                for (int y = 0; y < 10; y++) {
+                    for (int z = 0; z < 10; z++) {
+                        angle = angle + 1;
+                        Print();
+                }
+            }
+        }
+    }
+    void Print() {
+        Console.WriteLine("hello");
     }
 }
+```
 
 
+## Naming Convention
 
-Console.Open(this.script);
-int i = 0;
-if (i < 100) {
-while (i < 200) {
-i++;
-this.rotation = i;
-}
-}
-
-//self
-this.script
-//position
-this.position
-this.rotation
-//this.MissileObject
-
-
-1 class MissileObject {
-2   int angle = 0;
-3   Vector2 positon = this.position;
-4   Vector2 target = enemies[0].position;
-5   while (true) {
-6      float angle = Vector2.angle(position,target)
-7      this.RotateTowards(angle);
-8   }
-9 }
+  - Classes: PascalCase
+  - Static Methods: PascalCase
+  - Non-static Methods: camelCase
+  - Fields: snake_case
+  - Constants: ALL_UPPER_CASE

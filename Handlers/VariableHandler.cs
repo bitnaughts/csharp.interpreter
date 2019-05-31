@@ -32,11 +32,13 @@ public class VariableHandler {
             if (variables[i].name == name) return i;
         return -1;
     }
-
     public string getValue (string input) {
         int index;
         if (isVariable (input, out index)) return variables[index].value;
         return input;
+    }
+    public VariableObject getVariable (int index) {
+        return variables[index];
     }
     public void declareVariable (string line) {
 
@@ -51,7 +53,7 @@ public class VariableHandler {
         variable_name = parts[1];
         variable_value = Operators.EMPTY;
 
-        if (parts[3] == Keywords.NEW) {
+        if (parts[3] == Keywords.Operator.NEW) {
             for (int i = 4; i < parts.Length; i++) {
                 variable_value += parts[i] + " ";
             }
@@ -110,62 +112,12 @@ public class VariableHandler {
         variables.Add (new VariableObject (type, name, HashManager.getNewHash ().ToString())); //Hash used to connect it to its UI counterpart
         VariableObject template = VariableObject.getTemplate (type);
         for (int i = 0; i < template.fields.Length; i++) {
-            Logger.Log (values[i]);
+            //Logger.Log (values[i]);
             variables.Add (new VariableObject (template.fields[i].type, name + Operators.DOT + template.fields[i].name, Evaluator.cast (parse (values[i]), template.fields[i].type)));
         }
     }
     public string parse (string input) {
-        if (input != Operators.EMPTY) {
-            List<string> parts = input.Split (' ').ToList<string> ();
-            /* EVALUATE PARENTHESIS AND FUNCTIONS RECURSIVELY, e.g. "12 + function(2) * 4" ==> "12 + 4 * 4" */
-
-            //this section is still untested and requires thorough testing
-            //for edge cases with parenthesis, e.g. "Mathf.Abs((2 + 1) * 2)"
-            //
-            //I think this logic isn't the best suited for parenthesis
-            //Fix:
-            //find deepest set of parenthesis, combine spaces to parameters[], parse each parameter in parameters (for ","s in functions)
-            //in the end, "2 * (2 + 2)" = "2 * 4"
-            //or with functions, "2 * Mathf.Abs(2 + 2)" = "2 * Mathf.Abs(4)"...
-            //If function preceeds ()s, keep parenthesis, else return parse(parameter)
-
-            for (int part = 0; part < parts.Count; part++) {
-                if (parts[part].Contains (Operators.OPENING_PARENTHESIS)) {
-                    string parts_to_be_condensed = parts[part];
-                    while (parts[part].Contains (Operators.CLOSING_PARENTHESIS) == false) {
-                        part++;
-                        parts_to_be_condensed += " " + parts[part];
-                    }
-                    if (parts[part].IndexOf (Operators.OPENING_PARENTHESIS) == 0) {
-                        parts[part] = parse (parts_to_be_condensed);
-                    } else {
-                        //to support user-made functions, or functions that require interpreted lines of code to be executed first, will require logic here to allow for putting this parse in a stack to be popped on the "return" of said function
-                        string function = parts[part].Substring (0, parts[part].IndexOf (Operators.OPENING_PARENTHESIS));
-                        /* e.g. Mathf.Abs(-10) == 10 */
-                        // parts[part] = Evaluator.simplifyFunction (function, parse (parts_to_be_condensed));
-                    }
-                }
-            }
-
-            /* PEMDAS REST OF OPERATIONS, e.g. ["12", "+", 4, "*", "4"] ==> ["12", "+", "16"] ==> ["28"] */
-            if (parts.Count > 1) {
-                for (int operation_set = 0; operation_set < Operators.PEMDAS.Length; operation_set++) {
-                    for (int part = 1; part < parts.Count - 1; part++) {
-                        for (int operation = 0; operation < Operators.PEMDAS[operation_set].Length; operation++) {
-                            string operation_type = parts[part];
-                            if (operation_type == Operators.PEMDAS[operation_set][operation]) {
-                                string left = getValue (parts[part - 1]), right = getValue (parts[part + 1]);
-                                parts[part - 1] = Evaluator.simplify (left, operation_type, right);
-                                parts.RemoveRange (part, 2);
-                                part--;
-                            }
-                        }
-                    }
-                }
-            }
-            /* RETURN FULLY SIMPLIFIED VALUE, e.g. "28" */
-            return parts[0];
-        }
+       
         return Operators.EMPTY;
     }
     public override string ToString () {

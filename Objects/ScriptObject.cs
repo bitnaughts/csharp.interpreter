@@ -1,9 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
 public class ScriptObject {
 
-	public GameObject obj;
 	private string[] script;
 
 	private ProcessorObject processor;
@@ -15,23 +13,22 @@ public class ScriptObject {
 	int line = 0;
 	bool new_line = true;
 
-	public ScriptObject (GameObject obj, string text) {
-		init (obj, text.Split ('\n'));
+	public ScriptObject (string text) {
+		init (text.Split ('\n'));
 	}
-	public ScriptObject (GameObject obj, string[] script) {
-		init (obj, script);
+	public ScriptObject (string[] script) {
+		init (script);
 	}
-	public void init (GameObject obj, string[] script) {
-		this.obj = obj;
+	public void init (string[] script) {
 		this.script = script;
-		interpreter = new Interpreter (script, obj);
+		interpreter = new Interpreter (script);
 		processor = new ProcessorObject ();
 	}
 	public void setScript (string text) {
 		setScript (text.Split ('\n'));
 	}
 	public void setScript (string[] script) {
-		interpreter = new Interpreter (script, obj);
+		interpreter = new Interpreter (script);
 	}
 	public void setProcessor (ProcessorObject processor) {
 		this.processor = processor;
@@ -44,7 +41,7 @@ public class ScriptObject {
 		while (time >= processor.tick_speed && !finished) {
 			time -= processor.tick_speed;
 			/* Execute a line */
-			finished = interpreter.interpretLine ();
+			finished = interpreter.step ();
 			ran_this_tick = true;
 		}
 		return ran_this_tick;
@@ -56,21 +53,19 @@ public class ScriptObject {
 		return script;
 	}
 	public string getFormattedScript () {
-		string indent_string = "<color=#" + ColorCoder.getLitScreenColor () + ">" + "|" + "</color>\t";
+		string indent_string = "<color=#" + Formatter.getLitScreenColor () + ">" + "|" + "</color>\t";
 		string output = "";
 		string indents = "";//"\t";
 		for (int line = 0; line < script.Length; line++) {
 			if (script[line].Contains ("}")) indents = indents.Substring (indent_string.Length);
-			if (line < 10) output += "0" + line + "\t" + indents + ColorCoder.colorize(script[line]) + "\n";
-			else output += line + "\t" + indents + ColorCoder.colorize(script[line]) + "\n";
+			if (line < 10) output += "0" + line + "\t" + indents + Formatter.colorize(script[line]) + "\n";
+			else output += line + "\t" + indents + Formatter.colorize(script[line]) + "\n";
 			if (script[line].Contains ("{")) indents += indent_string;
 		}
 		return output;
 	}
 
 	public override string ToString () {
-		string output = "";
-		output += interpreter.ToString ();
-		return output;
+		return interpreter.ToString ();
 	}
 }
