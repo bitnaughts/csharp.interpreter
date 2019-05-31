@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -11,8 +11,10 @@ public static class Parser {
     /* Parser simplifies complex statements into simple ones, managing PEMDAS, function calls, etc. */
     public static string step (string line_in, VariableHandler variable_handler, out bool simplified) {
 
-        /* Assume given line is not fully simplified (or else why call step()) */
+        /* Assume given line is not fully simplified until proven otherwise */
         simplified = false;
+        
+       
 
         /* Handling parenthesis, whether for PEDMAS manipulation or function calls */
         if (line_in.Contains (Operators.OPENING_PARENTHESIS)) {

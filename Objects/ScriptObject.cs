@@ -53,13 +53,13 @@ public class ScriptObject {
 		return script;
 	}
 	public string getFormattedScript () {
-		string indent_string = "<color=#" + ColorCoder.getLitScreenColor () + ">" + "|" + "</color>\t";
+		string indent_string = "<color=#" + Formatter.getLitScreenColor () + ">" + "|" + "</color>\t";
 		string output = "";
 		string indents = "";//"\t";
 		for (int line = 0; line < script.Length; line++) {
 			if (script[line].Contains ("}")) indents = indents.Substring (indent_string.Length);
-			if (line < 10) output += "0" + line + "\t" + indents + ColorCoder.colorize(script[line]) + "\n";
-			else output += line + "\t" + indents + ColorCoder.colorize(script[line]) + "\n";
+			if (line < 10) output += "0" + line + "\t" + indents + Formatter.colorize(script[line]) + "\n";
+			else output += line + "\t" + indents + Formatter.colorize(script[line]) + "\n";
 			if (script[line].Contains ("{")) indents += indent_string;
 		}
 		return output;
