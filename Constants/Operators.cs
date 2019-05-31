@@ -13,13 +13,13 @@ public static class Operators {
         }
     }
     public static class Boolean {
-        public static const NEGATION = "!", AND = "&&", OR = "||", EQUALITY = "==", INEQUALITY = "!=";
+        public const string NEGATION = "!", AND = "&&", OR = "||", EQUALITY = "==", INEQUALITY = "!=";
     }
     public static class Comparison {
-        public static const LESS_THAN = "<", GREATER_THAN = ">", LESS_THAN_OR_EQUAL = "<=", GREATER_THAN_OR_EQUAL = ">=";
+        public const string LESS_THAN = "<", GREATER_THAN = ">", LESS_THAN_OR_EQUAL = "<=", GREATER_THAN_OR_EQUAL = ">=";
     }
     public static class Member {
-        public static const ACCESS = ".", INDEXER_OPENING = "[", INDEXER_CLOSING = "]", INVOCATION = "()";
+        public const string ACCESS = ".", INDEXER_OPENING = "[", INDEXER_CLOSING = "]", INVOCATION = "()";
     }
     public const string EMPTY = "",
         SPACE = " ",
@@ -38,12 +38,11 @@ public static class Operators {
 
     /* For the Parser.simplify() function */
     public static readonly string[][] PEMDAS = {
-        new string[] { MODULUS },
-        new string[] { TIMES, DIVIDE },
-        new string[] { ADD, SUBTRACT },
-        new string[] { EQUAL_TO, NOT_EQUAL, GREATER_THAN, GREATER_THAN_EQUAL, LESS_THAN, LESS_THAN_EQUAL },
-        new string[] { AND },
-        new string[] { OR }
+        new string[] { Arithmetic.MULTIPLICATION, Arithmetic.DIVISION, Arithmetic.REMAINDER },
+        new string[] { Arithmetic.ADDITION, Arithmetic.SUBTRACTION },
+        new string[] { Boolean.EQUALITY, Boolean.INEQUALITY, Comparison.GREATER_THAN, Comparison.GREATER_THAN_OR_EQUAL, Comparison.LESS_THAN, Comparison.LESS_THAN_OR_EQUAL },
+        new string[] { Boolean.AND },
+        new string[] { Boolean.OR }
     };
 
     /* For the String.Split() function */

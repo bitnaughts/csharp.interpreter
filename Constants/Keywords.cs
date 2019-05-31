@@ -6,11 +6,12 @@
     */
     public static class Type {
            public static class Value {
-                public const string BOOL = "bool", BYTE = "byte", CHAR = "char", DOUBLE = "double", FLOAT = "float", INT = "int";
+                public const string BOOLEAN = "bool", BYTE = "byte", CHAR = "char", DOUBLE = "double", FLOAT = "float", INTEGER = "int";
            }
            public static class Reference {
                 public const string CLASS = "class", INTERFACE = "interface", OBJECT = "object", STRING = "string";   
            }
+           public const string VOID = "void";
     }
     public static class Modifier {
         public static class Access {
