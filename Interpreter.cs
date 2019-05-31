@@ -15,7 +15,7 @@ public class Interpreter {
 
     bool line_simplified;
 
-    string variable_type, variable_name, variable_value, variable_modifier, variable_initialization, parameter, condition, debugger;
+    string debugger;
 
     public Interpreter (string[] script) {
         if (script == null) script = new string[] { };
@@ -104,7 +104,7 @@ public class Interpreter {
                     if (line_simplified) {
 
                         scope.push (RangeObject.getScopeRange (script, getPointer ()), line_parts[0] != Keywords.Statement.Selection.IF);
-                        evaluateCondition (parameter, line_parts[0]);
+                        evaluateCondition (line_parameters[1], line_parts[0]);
                     }
 
                     break;
@@ -191,8 +191,9 @@ public class Interpreter {
     }
 
     private void evaluateCondition (string input, string type) {
-        input = Evaluator.cast (scope.parseInScope (input), Keywords.Type.Value.BOOLEAN);
-
+        //Logger.Log(input);
+        //input = Evaluator.cast (scope.parseInScope (input), Keywords.Type.Value.BOOLEAN);
+        //Logger.Log(input);
         if (bool.Parse (input) == true) {
             //...
         } else { scope.pop (); }
