@@ -13,8 +13,15 @@ public static class Parser {
 
         /* Assume given line is not fully simplified until proven otherwise */
         simplified = false;
-        
-       
+
+        string beginning_section = "";
+
+        if (line_in.IndexOf(" = ") >= 0) {
+            beginning_section = line_in.Substring(0, line_in.IndexOf(" = ") + 3);
+            line_in = line_in.Substring(line_in.IndexOf(" = ") + 2);
+        }
+
+       //NOTE: LOOK ALWAYS TO THE RIGHT OF AN "=" SIGN... supports things like "int i = 5 + 10" cleanly with no edge cases, when simplfiied, set i = 15... 
 
         /* Handling parenthesis, whether for PEDMAS manipulation or function calls */
         if (line_in.Contains (Operators.OPENING_PARENTHESIS)) {
@@ -31,10 +38,10 @@ public static class Parser {
                 inner_snippet = inner_snippet.Substring(0, getLengthToClosingParenthesis(inner_snippet, 0));
             }
             
-            return line_in.Remove (start_of_parenthesis, inner_snippet.Length + 2)
+            return beginning_section + line_in.Remove (start_of_parenthesis, inner_snippet.Length + 2)
                 .Insert (start_of_parenthesis, simplify (inner_snippet, variable_handler, out simplified));
         }
-        return simplify (line_in, variable_handler, out simplified);
+        return beginning_section + simplify(line_in, variable_handler, out simplified);
     }
 
     private static string simplify (string input, VariableHandler variable_handler, out bool simplified) {

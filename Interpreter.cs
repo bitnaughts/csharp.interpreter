@@ -14,6 +14,7 @@ public class Interpreter {
     public FunctionHandler function_handler;
 
     bool line_simplified;
+    bool first_section_finished = false;
 
     string debugger;
 
@@ -59,33 +60,30 @@ public class Interpreter {
         //For visualization
         // script[getPointer ()] = current_line;
 
-
-
         //This might be more appropriate in Interpreter.cs, as parser should be specialized only for shortening expressions/functions...
         /* If there is a variable declaration in the current line, e.g. "i = 10 + 20" or "int i = 10 + 20" */
         //if (line_in.Contains(Operators.SPACE + Operators.EQUALS + Operators.SPACE))
         //{ //to avoid being confused with ==, etc.
 
-            //string[] line_parts = line_in.Split(Operators.SPACE + Operators.EQUALS + Operators.SPACE);
-            //string variable_information = line_parts[0]; // "i"
-            //string value_information = line_parts[1]; // "10 + 20" ==> "30"...
+        //string[] line_parts = line_in.Split(Operators.SPACE + Operators.EQUALS + Operators.SPACE);
+        //string variable_information = line_parts[0]; // "i"
+        //string value_information = line_parts[1]; // "10 + 20" ==> "30"...
 
-            //line_in = line_in.Substring(line_in.IndexOf(Operators.SPACE + Operators.EQUALS + Operators.SPACE) + 3);
-            //Might need some sort of promise to set variable to fully simplified value...
-            //Also for rebuilding full line back to "i = 30" at the end...
+        //line_in = line_in.Substring(line_in.IndexOf(Operators.SPACE + Operators.EQUALS + Operators.SPACE) + 3);
+        //Might need some sort of promise to set variable to fully simplified value...
+        //Also for rebuilding full line back to "i = 30" at the end...
         //}
-
 
         if (line_simplified || true) {
 
             string[] line_parts = current_line.Split (Operators.SPACE[0]);
-
+            string[] line_parameters;
             switch (line_parts[0]) {
                 case Operators.EMPTY:
                     break;
                 case Operators.CLOSING_BRACKET:
-                    if (scope.isLooping()) scope.back();
-                    else scope.pop();
+                    if (scope.isLooping ()) scope.back ();
+                    else scope.pop ();
                     break;
                 case Keywords.Statement.Jump.BREAK:
                     scope.pop ();
@@ -95,43 +93,69 @@ public class Interpreter {
                     break;
                 case Keywords.Statement.Selection.IF:
                 case Keywords.Statement.Iteration.WHILE:
+                    /* For this case, use the example "if (i < 10) {" */
 
-                    string[] line_parameters = SubstringHandler.SplitFunction (current_line, Operators.SPLIT_PARAMETERS);
+                    /* e.g. ["if", "i < 10", "{"] */
+                   line_parameters = SubstringHandler.SplitFunction (current_line, Operators.SPLIT_PARAMETERS);
+
+                    /* e.g. "5 < 10" if i = 5 */
                     line_parameters[1] = Parser.step (line_parameters[1], getVariableHandler (), out line_simplified);
 
+                    /* e.g. "if (5 < 10) {" */
                     script[getPointer ()] = line_parts[0] + " (" + line_parameters[1] + ") {";
 
                     if (line_simplified) {
-
                         scope.push (RangeObject.getScopeRange (script, getPointer ()), line_parts[0] != Keywords.Statement.Selection.IF);
                         evaluateCondition (line_parameters[1], line_parts[0]);
                     }
-
                     break;
                 case Keywords.Statement.Iteration.FOR:
+                    /* For this case, use the example "for (int i = 5; i < 10; i++) {" */
 
-                    /* Add to scope "if scope hasn't been pushed for this yet..." */
-                    // scope.push (RangeObject.getScopeRange (script, getPointer ()), line_parts[0] != Keywords.IF);
-                    // /* e.g. "while (i < 10) {" */
-                    // parameter = Operators.EMPTY;
-                    // for (int i = 1; i < line_parts.Length - 1; i++) parameter += line_parts[i] + " ";
-                    // parameter = parameter.Substring (1, parameter.Length - 3);
+                    /* e.g. ["for", "int i = 5", "i < 10", "i++", "{"] */
+                    line_parameters = SubstringHandler.SplitFunction (current_line, Operators.SPLIT_PARAMETERS);
 
-                    // if (line_parts[0] == Keywords.FOR) {
-                    //     /* e.g. "int i = 0; i < 10; i++" */
-                    //     string[] parameters = parameter.Split (Operators.END_LINE_CHAR);
-                    //     variable_initialization = parameters[0];
-                    //     variable_modifier = parameters[2].Substring (1);
-                    //     parameter = parameters[1].Substring (1);
-                    //     /* e.g. ["int i = 0", "i < 10", "i++"] */
-                    //     if (scope.isVariableInScope (variable_initialization.Split (' ') [1])) {
-                    //         scope.setVariableInScope (variable_modifier); /* Is not the first time for loop has run, e.g. "i" exists*/
-                    //     } else {
-                    //         scope.declareVariableInScope (variable_initialization); /* Run first part of for loop for first iteration, e.g. "i" needs to be initialized*/
-                    //     }
-                    // }
+                    
 
-                    // evaluateCondition (parameter, line_parts[0]);
+                    /* Has the for loop been executed in scope before? If so, "i" must've been declared */
+                    if (scope.isVariableInScope (line_parameters[1].Split (' ') [1])) {
+                        /* For loop has run in scope before, modify the variable */
+
+                        /* e.g. "i++" goes to "i = i + 1" goes to "i = 5 + 1" goes to "i = 6", simplified = true */
+                        line_parameters[3] = Parser.step (line_parameters[3], getVariableHandler (), out line_simplified);
+
+                        if (line_simplified) {
+                            scope.setVariableInScope (line_parameters[3]);
+                            first_section_finished = true;
+                            break;
+                        }
+
+                    } else {
+                        /* For loop has not run in scope before, declare the variable */
+
+                        /* e.g. "int i = 5", simplified = true */
+                        line_parameters[1] = Parser.step (line_parameters[1], getVariableHandler (), out line_simplified);
+
+                        if (line_simplified) {
+                            scope.declareVariableInScope (line_parameters[1]);
+                            first_section_finished = true;
+                            break;
+                        }
+                    }
+
+                    if (first_section_finished) {
+                        
+                        line_parameters[2] = Parser.step (line_parameters[2], getVariableHandler (), out line_simplified);
+
+                        if (line_simplified)
+                        { 
+                            scope.push (RangeObject.getScopeRange (script, getPointer ()), line_parts[0] != Keywords.Statement.Selection.IF);
+                            evaluateCondition (line_parameters[2], line_parts[0]);
+                        }
+                    }
+
+                    script[getPointer ()] = line_parts[0] + " (" + line_parameters[1] + "; " + line_parameters[2] + "; " + line_parameters[3] + ") {";
+
                     break;
                 case Keywords.Type.Value.BOOLEAN:
                 case Keywords.Type.Value.INTEGER:
@@ -140,12 +164,12 @@ public class Interpreter {
                     //Primitive Data Types
                     scope.declareVariableInScope (current_line);
                     break;
-                //case Console.NAME:
-                //case Plotter.NAME:
+                    //case Console.NAME:
+                    //case Plotter.NAME:
                     //Not possible (as far as I know) to hit a function header, so assume it is just a variable declaration
                     //scope.declareVariableInScope (current_line);
                     //if (line_parts[0] == Console.NAME) {
-                        //issue with doing this here is that you still ned separate logic when garbage collecting to destroy window...
+                    //issue with doing this here is that you still ned separate logic when garbage collecting to destroy window...
                     //}
                     //break;
                 default:
