@@ -51,7 +51,9 @@ public class VariableHandler {
         /* e.g. ["Vector2", "vect", "=", "new", "Vector2(20,", "10);"] */
         variable_type = parts[0];
         variable_name = parts[1];
-        variable_value = Operators.EMPTY;
+        variable_value = parts[3];
+
+
 
         if (parts[3] == Keywords.Operator.NEW) {
             for (int i = 4; i < parts.Length; i++) {
@@ -71,9 +73,10 @@ public class VariableHandler {
 
             setVariable (variable_type, variable_name, variable_values);
         } else {
-            for (int i = 3; i < parts.Length; i++) {
-                variable_value += Evaluator.scrubSymbols (parts[i]) + " ";
-            }
+            //for (int i = 3; i < parts.Length; i++) {
+            //variable_value += Evaluator.scrubSymbols (parts[i]) + " ";
+            //}
+//            Logger.Log(line_parameters[1]);
             setVariable (variable_type, variable_name, variable_value);
         }
     }
@@ -100,12 +103,12 @@ public class VariableHandler {
     }
     public void setVariable (int index, string value) {
         if (value != Operators.EMPTY) {
-            variables[index].value = Evaluator.cast (parse (value), variables[index].type);
+            variables[index].value = value;
         }
     }
     public void setVariable (string type, string name, string value) {
         /* VARIABLE DOES NOT EXIST, INITIALIZE IT, e.g. "int i = 122;" */
-        variables.Add (new VariableObject (type, name, Evaluator.cast (parse (value), type)));
+        variables.Add (new VariableObject (type, name, value));
     }
     public void setVariable (string type, string name, string[] values) {
         /* OBJECT DOES NOT EXIST, INITIALIZE IT */
@@ -113,13 +116,10 @@ public class VariableHandler {
         VariableObject template = VariableObject.getTemplate (type);
         for (int i = 0; i < template.fields.Length; i++) {
             //Logger.Log (values[i]);
-            variables.Add (new VariableObject (template.fields[i].type, name + Operators.DOT + template.fields[i].name, Evaluator.cast (parse (values[i]), template.fields[i].type)));
+            //variables.Add (new VariableObject (template.fields[i].type, name + Operators.DOT + template.fields[i].name, Evaluator.cast (parse (values[i]), template.fields[i].type)));
         }
     }
-    public string parse (string input) {
-       
-        return Operators.EMPTY;
-    }
+
     public override string ToString () {
         string output = "";
         for (int i = 0; i < variables.Count; i++) {

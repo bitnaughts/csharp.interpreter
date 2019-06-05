@@ -127,8 +127,11 @@ public class Interpreter {
                         if (line_simplified) {
                             scope.setVariableInScope (line_parameters[3]);
                             first_section_finished = true;
-                            break;
+                            
                         }
+                        else {
+                            script[getPointer()] = line_parts[0] + " (" + line_parameters[1] + "; " + line_parameters[2] + "; " + line_parameters[3] + ") {";
+                            break; }
 
                     } else {
                         /* For loop has not run in scope before, declare the variable */
@@ -137,24 +140,28 @@ public class Interpreter {
                         line_parameters[1] = Parser.step (line_parameters[1], getVariableHandler (), out line_simplified);
 
                         if (line_simplified) {
-                            scope.declareVariableInScope (line_parameters[1]);
+                            Logger.Log(line_parameters[1]);
+                            scope.declareVariableInScope(line_parameters[1]);
                             first_section_finished = true;
-                            break;
                         }
+                        else {
+                            script[getPointer()] = line_parts[0] + " (" + line_parameters[1] + "; " + line_parameters[2] + "; " + line_parameters[3] + ") {";
+                            break;
+                        }; //don't check conditional in same instant
                     }
 
-                    if (first_section_finished) {
-                        
-                        line_parameters[2] = Parser.step (line_parameters[2], getVariableHandler (), out line_simplified);
-
+                    //if (first_section_finished) {
+                    Logger.Log(line_parameters[2]);
+                    line_parameters[2] = Parser.step (line_parameters[2], getVariableHandler (), out line_simplified);
+                    debugger += "\ntwo: " + line_parameters[2];
                         if (line_simplified)
                         { 
                             scope.push (RangeObject.getScopeRange (script, getPointer ()), line_parts[0] != Keywords.Statement.Selection.IF);
                             evaluateCondition (line_parameters[2], line_parts[0]);
                         }
-                    }
+                    //}
+                    script[getPointer()] = line_parts[0] + " (" + line_parameters[1] + "; " + line_parameters[2] + "; " + line_parameters[3] + ") {";
 
-                    script[getPointer ()] = line_parts[0] + " (" + line_parameters[1] + "; " + line_parameters[2] + "; " + line_parameters[3] + ") {";
 
                     break;
                 case Keywords.Type.Value.BOOLEAN:

@@ -45,10 +45,7 @@ public class ScopeHandler {
         if (scope.Count == 0) return;
         scope.Peek ().variable_handler.declareVariable (line);
     }
-    public string parseInScope (string line) {
-        if (scope.Count == 0) return null;
-        return scope.Peek ().variable_handler.parse (line);
-    }
+
     public List<VariableObject> getVariablesInScope () {
         if (scope.Count == 0) return null;
         List<VariableObject> variables_copy = new List<VariableObject> ();
