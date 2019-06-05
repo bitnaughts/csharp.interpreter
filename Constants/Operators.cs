@@ -37,12 +37,12 @@ public static class Operators {
 
 
     /* For the Parser.simplify() function */
-    public static readonly string[][] PEMDAS = {
-        new string[] { Arithmetic.MULTIPLICATION, Arithmetic.DIVISION, Arithmetic.REMAINDER },
-        new string[] { Arithmetic.ADDITION, Arithmetic.SUBTRACTION },
-        new string[] { Boolean.EQUALITY, Boolean.INEQUALITY, Comparison.GREATER_THAN, Comparison.GREATER_THAN_OR_EQUAL, Comparison.LESS_THAN, Comparison.LESS_THAN_OR_EQUAL },
-        new string[] { Boolean.AND },
-        new string[] { Boolean.OR }
+    public static readonly string[] PEMDAS = {
+        Arithmetic.MULTIPLICATION + TAB + Arithmetic.DIVISION + TAB + Arithmetic.REMAINDER + TAB, 
+        Arithmetic.ADDITION + TAB + Arithmetic.SUBTRACTION + TAB,
+        Boolean.EQUALITY + TAB + Boolean.INEQUALITY + TAB + Comparison.GREATER_THAN + TAB + Comparison.GREATER_THAN_OR_EQUAL + TAB + Comparison.LESS_THAN + TAB + Comparison.LESS_THAN_OR_EQUAL + TAB,
+        Boolean.AND + TAB,
+        Boolean.OR + TAB 
     };
 
     /* For the String.Split() function */

@@ -16,12 +16,12 @@ public static class Parser {
 
         string beginning_section = "";
 
-        if (line_in.IndexOf(" = ") >= 0) {
-            beginning_section = line_in.Substring(0, line_in.IndexOf(" = ") + 3);
-            line_in = line_in.Substring(line_in.IndexOf(" = ") + 2);
+        if (line_in.IndexOf (" = ") >= 0) {
+            beginning_section = line_in.Substring (0, line_in.IndexOf (" = ") + 3);
+            line_in = line_in.Substring (line_in.IndexOf (" = ") + 2);
         }
 
-       //NOTE: LOOK ALWAYS TO THE RIGHT OF AN "=" SIGN... supports things like "int i = 5 + 10" cleanly with no edge cases, when simplfiied, set i = 15... 
+        //NOTE: LOOK ALWAYS TO THE RIGHT OF AN "=" SIGN... supports things like "int i = 5 + 10" cleanly with no edge cases, when simplfiied, set i = 15... 
 
         /* Handling parenthesis, whether for PEDMAS manipulation or function calls */
         if (line_in.Contains (Operators.OPENING_PARENTHESIS)) {
@@ -29,19 +29,18 @@ public static class Parser {
             int start_of_parenthesis = 0;
             string inner_snippet = line_in;
 
-
             while (inner_snippet.Contains (Operators.OPENING_PARENTHESIS)) {
 
                 start_of_parenthesis += inner_snippet.IndexOf (Operators.OPENING_PARENTHESIS);
-                Logger.Log(inner_snippet);
-                inner_snippet = inner_snippet.Substring(inner_snippet.IndexOf(Operators.OPENING_PARENTHESIS) + 1);
-                inner_snippet = inner_snippet.Substring(0, getLengthToClosingParenthesis(inner_snippet, 0));
+                Logger.Log (inner_snippet);
+                inner_snippet = inner_snippet.Substring (inner_snippet.IndexOf (Operators.OPENING_PARENTHESIS) + 1);
+                inner_snippet = inner_snippet.Substring (0, getLengthToClosingParenthesis (inner_snippet, 0));
             }
-            
+
             return beginning_section + line_in.Remove (start_of_parenthesis, inner_snippet.Length + 2)
                 .Insert (start_of_parenthesis, simplify (inner_snippet, variable_handler, out simplified));
         }
-        return beginning_section + simplify(line_in, variable_handler, out simplified);
+        return beginning_section + simplify (line_in, variable_handler, out simplified);
     }
 
     private static string simplify (string input, VariableHandler variable_handler, out bool simplified) {
@@ -69,27 +68,24 @@ public static class Parser {
             for (int part = 1; part < parts.Count () - 1; part += 2) {
 
                 /* Check if operation of input matches current order of PEMDAS */
-                for (int operation = 0; operation < Operators.PEMDAS[operation_set].Length; operation++) {
+                if (Operators.PEMDAS[operation_set].Contains (parts[part] + Operators.TAB)) {
 
-                    if (parts[part] == Operators.PEMDAS[operation_set][operation]) {
+                    /* Replace any variable's mnemonic name with it's value */
+                    string left = variable_handler.getValue (parts[part - 1]),
+                        right = variable_handler.getValue (parts[part + 1]);
 
-                        /* Replace any variable's mnemonic name with it's value */
-                        string left = variable_handler.getValue (parts[part - 1]),
-                            right = variable_handler.getValue (parts[part + 1]);
+                    /* Execute operation between two values, compresses three parts into one, e.g. ["4", "*", "4"] ==> ["16", "*", "4"] ==> ["16"] */
+                    parts[part - 1] = Evaluator.simplify (left, parts[part], right);
+                    parts.RemoveRange (part, 2);
 
-                        /* Execute operation between two values, compresses three parts into one, e.g. ["4", "*", "4"] ==> ["16", "*", "4"] ==> ["16"] */
-                        parts[part - 1] = Evaluator.simplify (left, parts[part], right);
-                        parts.RemoveRange (part, 2);
-
-                        /* Fully simplified */
-                        if (parts.Count () == 1) {
-                            simplified = true;
-                        }
-
-                        /* Recombine parts to resulting, simplified "4 + 16" */
-                        /* Note: It chooses to evaluate multiplication before addition, correctly following PEMDAS */
-                        return String.Join (Operators.SPACE, parts.ToArray ());
+                    /* Fully simplified */
+                    if (parts.Count () == 1) {
+                        simplified = true;
                     }
+
+                    /* Recombine parts to resulting, simplified "4 + 16" */
+                    /* Note: It chooses to evaluate multiplication before addition, correctly following PEMDAS */
+                    return String.Join (Operators.SPACE, parts.ToArray ());
                 }
             }
         }
