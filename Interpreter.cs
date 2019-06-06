@@ -6,6 +6,7 @@ using System.Linq;
 public class Interpreter {
 
     private string[] script;
+    private string[] script_saved;
     private string current_line;
 
     private ScopeHandler scope;
@@ -21,6 +22,7 @@ public class Interpreter {
     public Interpreter (string[] script) {
         if (script == null) script = new string[] { };
         this.script = script;
+        this.script_saved = (string[])script.Clone();
 
         CompilerHandler compiler = new CompilerHandler (script);
 
@@ -96,7 +98,7 @@ public class Interpreter {
                     /* For this case, use the example "if (i < 10) {" */
 
                     /* e.g. ["if", "i < 10", "{"] */
-                   line_parameters = SubstringHandler.SplitFunction (current_line, Operators.SPLIT_PARAMETERS);
+                    line_parameters = SubstringHandler.SplitFunction (current_line, Operators.SPLIT_PARAMETERS);
 
                     /* e.g. "5 < 10" if i = 5 */
                     line_parameters[1] = Parser.step (line_parameters[1], getVariableHandler (), out line_simplified);
@@ -115,8 +117,6 @@ public class Interpreter {
                     /* e.g. ["for", "int i = 5", "i < 10", "i++", "{"] */
                     line_parameters = SubstringHandler.SplitFunction (current_line, Operators.SPLIT_PARAMETERS);
 
-                    
-
                     /* Has the for loop been executed in scope before? If so, "i" must've been declared */
                     if (scope.isVariableInScope (line_parameters[1].Split (' ') [1])) {
                         /* For loop has run in scope before, modify the variable */
@@ -126,12 +126,15 @@ public class Interpreter {
 
                         if (line_simplified) {
                             scope.setVariableInScope (line_parameters[3]);
+
                             first_section_finished = true;
-                            
+                            script[getPointer()] = line_parts[0] + "ll (" + line_parameters[1] + "; " + line_parameters[2] + "; " + line_parameters[3] + ") {";
+
                         }
                         else {
-                            script[getPointer()] = line_parts[0] + " (" + line_parameters[1] + "; " + line_parameters[2] + "; " + line_parameters[3] + ") {";
-                            break; }
+                            script[getPointer ()] = line_parts[0] + " (" + line_parameters[1] + "; " + line_parameters[2] + "; " + line_parameters[3] + ") {";
+                            break;
+                        }
 
                     } else {
                         /* For loop has not run in scope before, declare the variable */
@@ -140,30 +143,39 @@ public class Interpreter {
                         line_parameters[1] = Parser.step (line_parameters[1], getVariableHandler (), out line_simplified);
 
                         if (line_simplified) {
-                            Logger.Log(line_parameters[1]);
-                            scope.declareVariableInScope(line_parameters[1]);
+                            Logger.Log (line_parameters[1]);
+                            scope.declareVariableInScope (line_parameters[1]);
                             first_section_finished = true;
+                            script[getPointer()] = line_parts[0] + "ll (" + line_parameters[1] + "; " + line_parameters[2] + "; " + line_parameters[3] + ") {";
+
                         }
                         else {
-                            script[getPointer()] = line_parts[0] + " (" + line_parameters[1] + "; " + line_parameters[2] + "; " + line_parameters[3] + ") {";
+                            script[getPointer ()] = line_parts[0] + " (" + line_parameters[1] + "; " + line_parameters[2] + "; " + line_parameters[3] + ") {";
                             break;
                         }; //don't check conditional in same instant
                     }
+                    line_simplified = false;
+                    break;
+
+                case Keywords.Statement.Iteration.FOR + "ll":
+                    line_parameters = SubstringHandler.SplitFunction(current_line, Operators.SPLIT_PARAMETERS);
 
                     //if (first_section_finished) {
-                    Logger.Log(line_parameters[2]);
+                    Logger.Log ("input:\n" + line_parameters[2]);
                     line_parameters[2] = Parser.step (line_parameters[2], getVariableHandler (), out line_simplified);
-                    debugger += "\ntwo: " + line_parameters[2];
-                        if (line_simplified)
-                        { 
-                            scope.push (RangeObject.getScopeRange (script, getPointer ()), line_parts[0] != Keywords.Statement.Selection.IF);
-                            evaluateCondition (line_parameters[2], line_parts[0]);
-                        }
-                    //}
-                    script[getPointer()] = line_parts[0] + " (" + line_parameters[1] + "; " + line_parameters[2] + "; " + line_parameters[3] + ") {";
 
+                    Logger.Log("output:\n" + line_parameters[2] + "\n" + script_saved[getPointer()]);
+
+                    if (line_simplified) {
+                        scope.push (RangeObject.getScopeRange (script, getPointer ()), line_parts[0] != Keywords.Statement.Selection.IF);
+                        evaluateCondition (line_parameters[2], line_parts[0]);
+                        script[getPointer ()] = script_saved[getPointer ()];
+                    } else {
+                        script[getPointer ()] = line_parts[0] + " (" + line_parameters[1] + "; " + line_parameters[2] + "; " + line_parameters[3] + ") {";
+                    }
 
                     break;
+
                 case Keywords.Type.Value.BOOLEAN:
                 case Keywords.Type.Value.INTEGER:
                 case Keywords.Type.Value.FLOAT:
@@ -224,7 +236,7 @@ public class Interpreter {
     private void evaluateCondition (string input, string type) {
         //Logger.Log(input);
         //input = Evaluator.cast (scope.parseInScope (input), Keywords.Type.Value.BOOLEAN);
-        //Logger.Log(input);
+        Logger.Log(input);
         if (bool.Parse (input) == true) {
             //...
         } else { scope.pop (); }
