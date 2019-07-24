@@ -1,6 +1,8 @@
+# BitNaughts' C# Intepreter
+
 ![banner](https://raw.githubusercontent.com/bitnaughts/bitnaughts.assets/master/images/banner.png)
 
-# BitNaughts' C# Intepreter
+[![Build Status](https://dev.azure.com/bitnaughts/bitnaughts/_apis/build/status/bitnaughts.csharp.interpreter?branchName=master)](https://dev.azure.com/bitnaughts/bitnaughts/_build/latest?definitionId=1&branchName=master)
 
 A glorified string parser, the Interpreter reads heavily-linted C# syntax and triggers events in BitNaughts based on what it reads. It current supports:
 
