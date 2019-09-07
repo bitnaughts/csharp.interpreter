@@ -224,6 +224,10 @@ public class Interpreter {
             else {
                 if (line_simplified) {
                     scope.step ();
+                    for (int i = 0; i < script.Length; i++)
+                    {
+                        script[i] = script_saved[i];
+                    }
                 }
                 // listener_handler.updateListeners (this);
                 return false;
