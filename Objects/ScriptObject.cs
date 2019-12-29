@@ -2,6 +2,27 @@
 using System.Collections.Generic;
 public class ScriptObject {
 
+	public const string SCRIPT_TEMPLATE = @"
+using Console;
+class ExampleClass {
+    int tester = 10;
+    static void Main() {
+            int angle = 1;
+            for (int x = 0; x < 10; x++) {
+                for (int y = 0; y < 10; y++) {
+                    for (int z = 0; z < 10; z++) {
+                        angle = angle + 1;
+                        Print();
+                }
+            }
+        }
+    }
+    void Print() {
+        Console.WriteLine(angle);
+    }
+}
+";
+
 	private string[] script;
 
 	private ProcessorObject processor;
@@ -12,7 +33,10 @@ public class ScriptObject {
 	bool finished = false;
 	int line = 0;
 	bool new_line = true;
-
+	
+	public ScriptObject () {
+		init (SCRIPT_TEMPLATE.Split ('\n'));
+	}
 	public ScriptObject (string text) {
 		init (text.Split ('\n'));
 	}
@@ -55,11 +79,11 @@ public class ScriptObject {
 	public string getFormattedScript () {
 		string indent_string = "<color=#" + Formatter.getLitScreenColor () + ">" + "|" + "</color>\t";
 		string output = "";
-		string indents = "";//"\t";
+		string indents = ""; //"\t";
 		for (int line = 0; line < script.Length; line++) {
 			if (script[line].Contains ("}")) indents = indents.Substring (indent_string.Length);
-			if (line < 10) output += "0" + line + "\t" + indents + Formatter.colorize(script[line]) + "\n";
-			else output += line + "\t" + indents + Formatter.colorize(script[line]) + "\n";
+			if (line < 10) output += "0" + line + "\t" + indents + Formatter.colorize (script[line]) + "\n";
+			else output += line + "\t" + indents + Formatter.colorize (script[line]) + "\n";
 			if (script[line].Contains ("{")) indents += indent_string;
 		}
 		return output;
