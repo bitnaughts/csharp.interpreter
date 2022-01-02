@@ -42,11 +42,11 @@ public class VariableObject {
                         new VariableObject (Keywords.Type.Reference.STRING, "reference", "")
                     };
                     break;
-                case Plotter.NAME:
-                    fields = new VariableObject[] {
-                        new VariableObject (Keywords.Type.Reference.STRING, "value", "")
-                    };
-                    break;
+                // case Plotter.NAME:
+                //     fields = new VariableObject[] {
+                //         new VariableObject (Keywords.Type.Reference.STRING, "value", "")
+                //     };
+                //     break;
                 default:
                     fields = null;
                     break;

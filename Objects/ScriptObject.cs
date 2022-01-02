@@ -6,7 +6,7 @@ public class ScriptObject {
 using Console;
 class ExampleClass {
     int tester = 10;
-    static void Main() {
+    void Main() {
             int angle = 1;
             for (int x = 0; x < 10; x++) {
                 for (int y = 0; y < 10; y++) {
