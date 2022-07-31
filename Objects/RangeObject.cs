@@ -22,7 +22,7 @@ public class RangeObject {
         int end_line = start_line;
 
         int bracket_count = 1;
-        while (bracket_count > 0) {
+        while (bracket_count > 0 && end_line < script.Length) {
             end_line++;
             if (script[end_line].Contains (Operators.OPENING_BRACKET)) {
                 bracket_count++;
