@@ -26,7 +26,7 @@ public class ClassController
             case "▥": //Bulkhead
                 fields.Add(new Field("heap", "Heap", "new Heap()"));
                 methods.Add(new Method("New (string name)", "Memory Allocation", "heap.Add(name)"));
-                methods.Add(new Method("Delete (string name)", "Memory Deallocation" "heap.Remove(name)"));
+                methods.Add(new Method("Delete (string name)", "Memory Deallocation", "heap.Remove(name)"));
                 break;
             case "▩": //Processor
                 fields.Add(new Field("stack", "Stack", "new Stack()"));
