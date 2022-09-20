@@ -44,9 +44,9 @@ public class ClassController
                 break;
             case "▣": //Gimbal
                 name = "Gimbal";
-                methods.Add(new Method("RotateCW ()", "Rotation_control_(cw)", "void", "r += 15;"));
-                methods.Add(new Method("RotateCCW ()", "Rotation_control_(ccw)", "void", "r -= 15;"));
-                methods.Add(new Method("Rotate (double delta)", "Rotation_control_(ccw)", "void", "r += delta;"));
+                methods.Add(new Method("RotateCW ()", "Rotation_control_(cw)", "void", "rot += 15;"));
+                methods.Add(new Method("RotateCCW ()", "Rotation_control_(ccw)", "void", "rot -= 15;"));
+                methods.Add(new Method("Rotate (double delta)", "Rotation_control_(ccw)", "void", "rot += delta;"));
                 break;
             case "◌": //Sensor
                 name = "Sensor";
