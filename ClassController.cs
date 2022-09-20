@@ -97,6 +97,6 @@ public class Method
         this.code = code;
     }
     public override string ToString () {
-        return "/*" + comment + "*/\n" + return_type + " " + name + " { " + code + " }";
+        return "/*" + comment + "*/ " + return_type + " " + name + " { " + code + " }";
     }
 }
