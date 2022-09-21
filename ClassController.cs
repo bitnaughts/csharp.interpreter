@@ -63,14 +63,14 @@ public class ClassController
     }
 
     public override string ToString() {
-        string output = "class " + name + " : Component {\n";
+        string output = "♘class " + name + " : Component { ";
         foreach (var f in fields.ToArray()) {
-            output += f.ToString() + "\n";
+            output += f.ToString() + " ";
         }
         foreach (var m in methods.ToArray()) {
-            output += m.ToString() + "\n";
+            output += m.ToString() + " ";
         }
-        return output + "}";
+        return output + " }";
     }
 }
 
