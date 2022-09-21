@@ -5,13 +5,14 @@ using UnityEngine;
 public class ClassController
 {
     string name = "";
+    string input = "";
     List<Field> fields; // primitive data types, objects
     List<Method> methods; // constructor (initializes fields), getter/setter (modifies fields), main (Processor's start method)
 
     public ClassController(string input) {
+        this.input = input;
         fields = new List<Field>();
         methods = new List<Method>();
-        
         switch (input) {
             case "◎": //Booster
                 name = "Booster";
@@ -63,7 +64,11 @@ public class ClassController
     }
 
     public override string ToString() {
-        string output = "♘class " + name + " : Component { ";
+        string output = "♘";
+        if (input.Length == 1) {
+            return output + "c" + input;
+        }
+        output += "class " + name + " : Component { ";
         foreach (var f in fields.ToArray()) {
             output += f.ToString() + " ";
         }
