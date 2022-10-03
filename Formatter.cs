@@ -7,6 +7,9 @@ public class Formatter {
     public static Color Color_keyword = new Color (88 / 255f, 156 / 255f, 214 / 255f);
     public static Color Color_variable = new Color (156 / 255f, 220 / 255f, 254 / 255f);
     public static Color Color_object = new Color (80 / 255f, 200 / 255f, 175 / 255f);
+    public static Color Color_red = new Color (1f, 0, 0);
+    public static Color Color_green = new Color (0, 255f / 255f,  0);
+    public static Color Color_yellow = new Color (1f, 1f,  0);
     public static Color Color_function = new Color (220 / 255f, 220 / 255f, 170 / 255f);
     public static Color Color_number = new Color (181 / 255f, 206 / 255f, 168 / 255f);
     public static Color Color_comment = new Color (88 / 255f, 166 / 255f, 77 / 255f);
@@ -30,6 +33,15 @@ public class Formatter {
     public static string ColorObject (string line) {
         return"<color=#" + getObjectColor () + ">" + line + "</color>";
     }
+    public static string Red (string line) {
+        return"<color=#" + getRedColor () + ">" + line + "</color>";
+    }
+    public static string Green (string line) {
+        return"<color=#" + getGreenColor () + ">" + line + "</color>";
+    }
+    public static string Yellow (string line) {
+        return"<color=#" + getYellowColor () + ">" + line + "</color>";
+    }
     public static string getShadedScreenColor () {
         return RGBToHex (Color_shadedScreen);
     }
@@ -50,6 +62,15 @@ public class Formatter {
     }
     public static string getObjectColor () {
         return RGBToHex (Color_object);
+    }
+    public static string getRedColor () {
+        return RGBToHex (Color_red);
+    }
+    public static string getGreenColor () {
+        return RGBToHex (Color_green);
+    }
+    public static string getYellowColor () {
+        return RGBToHex (Color_yellow);
     }
     public static string getStringColor () {
         return RGBToHex (Color_string);
