@@ -112,7 +112,7 @@ public class VariableHandler {
     }
     public void setVariable (string type, string name, string[] values) {
         /* OBJECT DOES NOT EXIST, INITIALIZE IT */
-        variables.Add (new VariableObject (type, name, HashManager.getNewHash ().ToString())); //Hash used to connect it to its UI counterpart
+        variables.Add (new VariableObject (type, name, "")); //HashManager.getNewHash ().ToString() Hash used to connect it to its UI counterpart
         VariableObject template = VariableObject.getTemplate (type);
         for (int i = 0; i < template.fields.Length; i++) {
             //Logger.Log (values[i]);

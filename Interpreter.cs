@@ -5,7 +5,7 @@ using System.Linq;
 
 public class Interpreter {
 
-    private string[] script;
+    private List<string> script;
     private string[] script_saved;
     private string current_line;
 
@@ -19,20 +19,31 @@ public class Interpreter {
 
     string debugger;
 
-    public Interpreter (string[] script) {
-        if (script == null) script = new string[] { };
-        this.script = script;
-        this.script_saved = (string[])script.Clone();
-
-        CompilerHandler compiler = new CompilerHandler (script);
-
+    // New Flow
+    public Interpreter(ClassController c) {
+        this.script = new List<string>();
+        foreach (string l in c.ToString().Split('\n')) {
+            this.script.Add(l);
+        }
+        // this.script_saved = (string[])script.Clone();
+        CompilerHandler compiler = new CompilerHandler (script.ToArray());
         scope = new ScopeHandler (compiler);
         listener_handler = new ListenerHandler (compiler.handlers);
-
         template_handler = new TemplateHandler (compiler.template_list); //Will want to include information from compiler: build templates for all functions in scope
-
         function_handler = compiler.function_handler;
     }
+
+    // Old Flow 
+    // public Interpreter (string[] script) {
+    //     if (script == null) script = new string[] { };
+    //     this.script = script;
+    //     this.script_saved = (string[])script.Clone();
+    //     CompilerHandler compiler = new CompilerHandler (script);
+    //     scope = new ScopeHandler (compiler);
+    //     listener_handler = new ListenerHandler (compiler.handlers);
+    //     template_handler = new TemplateHandler (compiler.template_list); //Will want to include information from compiler: build templates for all functions in scope
+    //     function_handler = compiler.function_handler;
+    // }
 
     /* ... to be described...  (a.k.a. where the magic happens) */
     public bool step () {
@@ -107,7 +118,7 @@ public class Interpreter {
                     script[getPointer ()] = line_parts[0] + " (" + line_parameters[1] + ") {";
 
                     if (line_simplified) {
-                        scope.push (RangeObject.getScopeRange (script, getPointer ()), line_parts[0] != Keywords.Statement.Selection.IF);
+                        // scope.push (RangeObject.getScopeRange (script, getPointer ()), line_parts[0] != Keywords.Statement.Selection.IF);
                         evaluateCondition (line_parameters[1], line_parts[0]);
                     }
                     break;
@@ -167,7 +178,7 @@ public class Interpreter {
                     Logger.Log("output:\n" + line_parameters[2] + "\n" + script_saved[getPointer()]);
 
                     if (line_simplified) {
-                        scope.push (RangeObject.getScopeRange (script, getPointer ()), line_parts[0] != Keywords.Statement.Selection.IF);
+                        // scope.push (RangeObject.getScopeRange (script, getPointer ()), line_parts[0] != Keywords.Statement.Selection.IF);
                         evaluateCondition (line_parameters[2], line_parts[0]);
                         script[getPointer ()] = script_saved[getPointer ()];
                     } else {
@@ -224,7 +235,7 @@ public class Interpreter {
             else {
                 if (line_simplified) {
                     scope.step ();
-                    for (int i = 0; i < script.Length; i++)
+                    for (int i = 0; i < script.Count; i++)
                     {
                         script[i] = script_saved[i];
                     }
@@ -274,7 +285,7 @@ public class Interpreter {
     }
 
     public override string ToString () {
-        string output = debugger + "\n\n";
+        string output = getScript () + "\n\n" + debugger + "\n\n";
         // output += compiler.ToString ();
         debugger = Operators.EMPTY;
         output += scope.ToString ();

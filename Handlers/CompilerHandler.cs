@@ -26,7 +26,7 @@ public class CompilerHandler {
 
         compile (script);
 
-        base_scope.setRange (RangeObject.getScopeRange (script, main_function_line));
+        // base_scope.setRange (RangeObject.getScopeRange (script, main_function_line));
     }
 
     public void compile (string[] script) {
