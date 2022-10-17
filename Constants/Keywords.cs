@@ -9,7 +9,7 @@
                 public const string BOOLEAN = "bool", BYTE = "byte", CHAR = "char", DOUBLE = "double", FLOAT = "float", INTEGER = "int";
            }
            public static class Reference {
-                public const string CLASS = "class", INTERFACE = "interface", OBJECT = "object", STRING = "string";   
+                public const string CLASS = "class", INTERFACE = "interface", OBJECT = "Object", STRING = "string";   
            }
            public const string VOID = "void";
     }

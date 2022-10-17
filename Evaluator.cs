@@ -12,6 +12,13 @@ public class Evaluator {
     private static float float_result;
     private static bool bool_result;
 
+    public static string simplify (string input) {
+        if (input.Contains(" ")) {
+            var parts = input.Split(' ');
+            return simplify (parts[0], parts[1], parts[2]);
+        }
+        return input;
+    }
     public static string simplify (string left, string arithmetic_operator, string right) {
         /* e.g. ["12", "*", "4"] ==> ["48"] */
         string left_type = getType (left), right_type = getType (right);

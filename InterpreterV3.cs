@@ -30,10 +30,10 @@ public class InterpreterV3
         }
     }
     /* Step increments the line index after finishing operations for the current line */
+    bool update_intermediate = false;
     public bool Step() 
     {
-        line++;
-        intermediate_line = "";
+        update_intermediate = true;
         return true;
     }
     /* Interpret executes the next operation found */
@@ -64,61 +64,91 @@ public class InterpreterV3
             debug_output += "\nending line " + line;
         }
         /* Grab the current line if empty */
-        // if (intermediate_line == "")  
-        // {
-        intermediate_line = s.method.lines[line];
-        debug_output += "\nLine " + line + ": \"" + intermediate_line + "\"";
-        // }
+        if (intermediate_line == "" || update_intermediate)  
+        {
+            line++;
+            intermediate_line = s.method.lines[line].Trim();
+            update_intermediate = false;
+            debug_output += "\nLine " + line + ": \"" + intermediate_line + "\"";
+        }
         /* Determine operation */
         switch (intermediate_line[0]) 
         {
             case Operators.DOLLAR_SIGN:
             case Operators.COMMENT_CHAR:
-                debug_output += "First Character Non-operable";
+            case Operators.OPENING_BRACKET_CHAR:
+            case Operators.CLOSING_BRACKET_CHAR:
+                debug_output += "Skipping";
                 return Step();
             default:
                 debug_output += "Operatable";
                 /* Split the intermediate line into its parts */
                 string[] line_parts = intermediate_line.Split (Operators.SPACE[0]);
                 string[] line_parameters = {};
+                var line_simplified = false;
                 switch (line_parts[0]) 
                 {
                     /* Primitive Data Types (PDTs, Instantiated on Stack) */
                     case Keywords.Type.Value.BOOLEAN:
                     case Keywords.Type.Value.INTEGER:
                     case Keywords.Type.Value.FLOAT:
-                        scope.setPrimitive(intermediate_line);
-                        return Step();
+                        line_parameters = new string[]{Simplify (intermediate_line.Split('=')[1], s, out line_simplified)};
+                        intermediate_line = line_parts[0] + " " + line_parts[1] + " = " + line_parameters[0];
+                        if (line_simplified)
+                        {
+                            scope.setPrimitive(intermediate_line);
+                            return Step();
+                        }
+                    
+                        return true;
                         // scope.declareVariableInScope (intermediate_line);
                     /* Objects (Instantiated on Heap) */
-                    // case Keywords.Type.Reference.STRING:
+                    case Keywords.Type.Reference.STRING:
+                    case Keywords.Type.Reference.OBJECT:
+                        scope.setPrimitive(intermediate_line); // TODO, generalize to support constructors/heap
+                        return true;
                         // if (scope.hasVariable(line_parts[1]) {
                             // index++; /* Already set, move on */
                         // }
                     case Keywords.Statement.Selection.IF:
                     case Keywords.Statement.Iteration.WHILE:
-                        /* For this case, use the example "if (i < 10) {" */
-                        /* e.g. ["if", "i < 10", "{"] */
+                        /* e.g. "if (i < 10)"    */
                         line_parameters = SubstringHandler.SplitFunction (intermediate_line, Operators.SPLIT_PARAMETERS);
-
-                        /* e.g. "5 < 10" if i = 5 */
-                        line_parameters[1] = step (line_parameters[1], s, out line_simplified);
-
-                        /* e.g. "if (5 < 10) {" */
+                        line_parameters[1] = Simplify (line_parameters[1], s, out line_simplified);
                         intermediate_line = line_parts[0] + " (" + line_parameters[1] + ")";
-
-                        if (line_simplified) {
-
-                            Evaluator.simplify()
-                            // scope.push (RangeObject.getScopeRange (script, getPointer ()), line_parts[0] != Keywords.Statement.Selection.IF);
-                            if (bool.Parse (Evaluator.cast (scope.parseInScope (input), Keywords.Type.Value.BOOLEAN))) 
+                        var end_line = s.method.EndOfScope(line);
+                        if (line_simplified) 
+                        {
+                            if (line_parameters[1] == "true")
                             {
-                            } else { scope.pop (); }
-                            // evaluateCondition (line_parameters[1], line_parts[0]);
+                                scope.push (new Scope(s.method, line, end_line, false, new List<Field>()));
+                            }
+                            else 
+                            {
+                                line = end_line;
+                            }
+                            return Step();
                         }
-                        break;
+                        return true;            
+                    default:
+                        if (s.hasVariable (line_parts[0]) != -1) 
+                        {
+                            if (intermediate_line.Contains(Operators.EQUALS)) 
+                            {
+                                line_parameters[1] = Simplify (line_parameters[1], s, out line_simplified);
+                                if (line_simplified)
+                                {
+
+                                    scope.setPrimitive(intermediate_line);
+                                    return Step();
+                                }
+                                return true;            
+                            }
+                            /* CHECK IF LINE REFERS TO A VARIABLE, e.g. "i = 10;" */
+                            // scope.setPrimitive(intermediate_line);
+                        }
+                        return Step();
                 }
-                
                 return true;
             // case Keywords.Statement.Jump.CONTINUE:
             //     index = s.start_index;
@@ -224,11 +254,7 @@ public class InterpreterV3
             //     //issue with doing this here is that you still ned separate logic when garbage collecting to destroy window...
             //     //}
             //     //break;
-            // default:
-            //     VariableObject variable_reference;
-            //     if (scope.isVariableInScope (line_parts[0])) {
-            //         /* CHECK IF LINE REFERS TO A VARIABLE, e.g. "i = 10;" */
-            //         scope.setVariableInScope (intermediate_line);
+
 
             //     } else if (scope.isVariableInScope (line_parts[0].Split ('.') [0], out variable_reference)) {
 
@@ -271,8 +297,8 @@ public class InterpreterV3
     {
         target_class = name;
     }
-    /* Parser simplifies complex statements into simple ones, managing PEMDAS, function calls, etc. */
-    public static string step (string line_in, Scope local_scope, out bool simplified) {
+    /* Simplify complex statements into simple ones, managing PEMDAS, function calls, etc. */
+    public static string Simplify (string line_in, Scope local_scope, out bool simplified) {
 
         /* Assume given line is not fully simplified until proven otherwise */
         simplified = false;
@@ -301,12 +327,12 @@ public class InterpreterV3
             }
 
             return beginning_section + line_in.Remove (start_of_parenthesis, inner_snippet.Length + 2)
-                .Insert (start_of_parenthesis, simplify (inner_snippet, variable_handler, out simplified));
+                .Insert (start_of_parenthesis, SimplifyOperation (inner_snippet, local_scope, out simplified));
         }
-        return beginning_section + simplify (line_in, variable_handler, out simplified);
+        return beginning_section + SimplifyOperation (line_in, local_scope, out simplified);
     }
 
-    private static string simplify (string input, Scope local_scope, out bool simplified) {
+    private static string SimplifyOperation (string input, Scope local_scope, out bool simplified) {
 
         /* Example input for this function: "4 + 4 * 4" */
         /* Note: Since step() manages any parenthesis-related PEDMAS, so that isn't handled in this function */
@@ -352,7 +378,7 @@ public class InterpreterV3
                 }
             }
         }
-        return getErrorMessage ();
+        return "";
     }
 
     public static int getLengthToClosingParenthesis (string line_in, int start_index) {
@@ -373,11 +399,19 @@ public class InterpreterV3
     // string.Join("\n", scope.peek().method.lines.ToArray())
     public override string ToString() {
         string output = "";
+        var s = scope.peek();
         foreach (var c in classes) 
         {
-            if (c.name == target_class)
+            if (s != null && s.method != null && s.method.class_obj != null && c.name == s.method.class_obj.name)
             {
-                output += c.ToString();
+                if (intermediate_line == "") 
+                {
+                    output += c.ToString();
+                }
+                else 
+                {
+                    output += c.ToString(s.method.name, line, intermediate_line);
+                }
             }
         } 
         output += "\n\n" + scope.ToString() + "\n" + heap.ToString() + "\nDebug:\n" + debug_output + "\n\nClock: " + System.DateTime.Now.ToString("hh:mm:ss");
@@ -386,16 +420,11 @@ public class InterpreterV3
     }
 }
 
-public class ScopeObj {
+public class ScopeObj 
+{
     Stack<Scope> stack;
     public ScopeObj () {
         stack = new Stack<Scope>();
-    }
-    public string getValue (string name) 
-    {  
-        var i = stack.Peek().hasVariable(name);
-        if (i == -1) return name;
-        return stack.Peek().getVariable(i);
     }
     public void setPrimitive (string line) 
     {
@@ -422,7 +451,8 @@ public class ScopeObj {
     }
 }
 
-public class Scope {
+public class Scope 
+{
     public Method method;
     List<Field> variables;
     public int start_index, end_index;
@@ -434,6 +464,12 @@ public class Scope {
         this.start_index = start_index;
         this.end_index = end_index;
         this.is_loop = is_loop;
+    }
+    public string getValue (string name) 
+    {  
+        var i = hasVariable(name);
+        if (i == -1) return name;
+        return getVariable(i);
     }
     public string getVariable(int index) 
     {
@@ -506,7 +542,7 @@ public class ClassObj
             // Iterate️ class
             case "ℹ":
                 name = "Iterate";
-                methods.Add(new Method(this, "Main", "_Entry_point_", "void", new List<Field>(){new Field("args", "String[]")}, new List<string>(){"//_New_line", "$", "int i = 0;", "if (i < 10)", "{", "  int j = 1;", "}", "Object obj = new Object();"}));
+                methods.Add(new Method(this, "Main", "_Entry_point_", "void", new List<Field>(){new Field("args", "String[]")}, new List<string>(){"//_New_line", "$", "int i = 2;", "if (i + 1 < 5 + 2 * 4 + 10)", "{", "  int j = 4;", "  i = i + j;", "}", "Object obj = new Object();", "String test_string = \"Hello\";", "int z = 100 * i * i * i;"}));
                 // methods.Add(new Method("SumArray (int[] input)", "Return_sum_of_input_array", "int", "  int total = 0;\n  for (int i = 0; i < input.Length(); i++)\n  {\n    total += input[i];\n  }\n  return total;"));
                 break;
             // BitNaughts constant class
@@ -563,11 +599,7 @@ public class ClassObj
     }
 
     public override string ToString() {
-        string output = "";//♘";
-        // if (input.Length == 1) {
-        //     return output + "c" + input;
-        // }
-        output += "class " + name + "\n{\n";
+        string output = "class " + name + "\n{\n  //_New_field\n  $\n";
         foreach (var f in fields.ToArray()) {
             output += f.ToString() + "\n";
         }
@@ -576,8 +608,34 @@ public class ClassObj
         }
         return output + "  //_New_method\n  $\n}";
     }
+    public string ToString(string method_name, int index, string intermediate_line) {
+        string output = "class " + name + "\n{\n  //_New_field\n  $\n";
+        foreach (var f in fields.ToArray())
+        {
+            output += f.ToString() + "\n";
+        }
+        foreach (var m in methods.ToArray())
+        {
+            output += "  /*" + m.comment + "*/\n  " + m.return_type + " " + m.name + " (" + string.Join(", ", m.parameters) + ")\n  {\n";
+            if (m.name == method_name) 
+            {
+                for (int i = 0; i < m.lines.Count(); i++) 
+                {
+                    if (i == index) 
+                    {
+                        output += "    " + Formatter.Red(intermediate_line.Replace(" ", "_")) + "\n";
+                    }
+                    else 
+                    {
+                        output += "    " + m.lines[i] + "\n";
+                    }
+                }
+            }
+            output += "  }";
+        }
+        return output + "\n  //_New_method\n  $\n}";
+    }
 }
-
 
 public class Field 
 {
@@ -597,11 +655,12 @@ public class Field
         return type + " " + name + " = " + value + ";";
     }
 }
+
 public class Method 
 {
     public ClassObj class_obj;
     public string comment, name, return_type;
-    List<Field> parameters;
+    public List<Field> parameters;
     public List<string> lines;
     public Method(ClassObj class_obj, string name, string comment, string return_type, List<Field> parameters, List<string> lines) {
         this.class_obj = class_obj;
@@ -610,6 +669,25 @@ public class Method
         this.return_type = return_type;
         this.parameters = parameters;
         this.lines = lines;
+    }
+    public int EndOfScope (int index) {
+        int indent_count = 0;
+        for (int i = index + 2; i < lines.Count(); i++)
+        {
+            if (lines[i].Contains(Operators.OPENING_BRACKET)) 
+            {
+                indent_count++;
+            }
+            else if (lines[i].Contains(Operators.CLOSING_BRACKET))
+            {
+                indent_count--;
+                if (indent_count <= 1) 
+                {
+                    return i;
+                }
+            }
+        }
+        return index;
     }
     public override string ToString () {
         return "  /*" + comment + "*/\n  " + return_type + " " + name + " (" + string.Join(", ", parameters) + ")\n  {\n    " + string.Join("\n    ", lines.ToArray()) + "\n  }";
