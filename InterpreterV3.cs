@@ -23,14 +23,162 @@ public class InterpreterV3
                 if (m.name == "Main") 
                 {
                     debug_output += "Found Main ()";
-                    scope.push(new Scope(m, 0, m.lines.Count(), false, new List<Field>()));
+                    scope.push(new Scope(m, 0, m.lines.Count, false, new List<Field>()));
                     SetTargetClass(c.name);
                 }
             }
         }
     }
+    public string simplifyBooleans (bool left, string arithmetic_operator, bool right) {
+        switch (arithmetic_operator) {
+            case Operators.Boolean.EQUALITY:
+                return (left == right).ToString ().ToLower();
+            case Operators.Boolean.AND:
+                return (left && right).ToString ().ToLower();
+            case Operators.Boolean.OR:
+                return (left || right).ToString ().ToLower();
+            default:
+                return "";
+        }
+    }
+    public string simplifyIntegers (int left, string arithmetic_operator, int right) {
+        switch (arithmetic_operator) {
+            case Operators.Arithmetic.REMAINDER:
+                return (left % right).ToString ();
+            case Operators.Arithmetic.MULTIPLICATION:
+                return (left * right).ToString ();
+            case Operators.Arithmetic.DIVISION:
+                if (right == 0) return 0.ToString();
+                return (left / right).ToString ();
+            case Operators.Arithmetic.ADDITION:
+                return (left + right).ToString ();
+            case Operators.Arithmetic.SUBTRACTION:
+                return (left - right).ToString ();
+            case Operators.Boolean.EQUALITY:
+                return (left == right).ToString ().ToLower();
+            case Operators.Boolean.INEQUALITY:
+                return (left != right).ToString().ToLower();
+            case Operators.Comparison.GREATER_THAN:
+                return (left > right).ToString ().ToLower();
+            case Operators.Comparison.GREATER_THAN_OR_EQUAL:
+                return (left >= right).ToString ().ToLower();
+            case Operators.Comparison.LESS_THAN:
+                return (left < right).ToString ().ToLower();
+            case Operators.Comparison.LESS_THAN_OR_EQUAL:
+                return (left <= right).ToString ().ToLower();
+            default:
+                return "";
+        }
+    }
+    public string simplifyFloats (float left, string arithmetic_operator, float right) {
+        switch (arithmetic_operator) {
+            case Operators.Arithmetic.REMAINDER:
+                return (left % right).ToString ();
+            case Operators.Arithmetic.MULTIPLICATION:
+                return (left * right).ToString ();
+            case Operators.Arithmetic.DIVISION:
+                return (left / right).ToString ();
+            case Operators.Arithmetic.ADDITION:
+                return (left + right).ToString ();
+            case Operators.Arithmetic.SUBTRACTION:
+                return (left - right).ToString ();
+            case Operators.Boolean.EQUALITY:
+                return (left == right).ToString ().ToLower();
+            case Operators.Boolean.INEQUALITY:
+                return (left != right).ToString().ToLower();
+            case Operators.Comparison.GREATER_THAN:
+                return (left > right).ToString ().ToLower();
+            case Operators.Comparison.GREATER_THAN_OR_EQUAL:
+                return (left >= right).ToString ().ToLower();
+            case Operators.Comparison.LESS_THAN:
+                return (left < right).ToString ().ToLower();
+            case Operators.Comparison.LESS_THAN_OR_EQUAL:
+                return (left <= right).ToString ().ToLower();
+            default:
+                return "";
+        }
+    }
+    public string simplifyString (string left, string arithmetic_operator, string right) {
+        if (left.IndexOf ("\"") == 0) left = left.Substring (1, left.Length - 2);
+        if (right.IndexOf ("\"") == 0) right = right.Substring (1, right.Length - 2);
+        switch (arithmetic_operator) {
+            case Operators.Arithmetic.ADDITION:
+                return left + right;
+            case Operators.Boolean.EQUALITY:
+                return (left == right).ToString ().ToLower();
+            case Operators.Boolean.INEQUALITY:
+                return (left != right).ToString().ToLower();
+            default:
+                return "";
+        }
+    }
+    public string getType (string input) {
+        if (bool.TryParse (input, out bool_result)) return Keywords.Type.Value.BOOLEAN;
+        if (int.TryParse (input, out int_result)) return Keywords.Type.Value.INTEGER;
+        if (float.TryParse (input, out float_result)) return Keywords.Type.Value.FLOAT;
+        return Keywords.Type.Reference.STRING;
+    }
+    public string simplifyCondensedOperators (string variable_name, string arithmetic_operator) {
+        switch (arithmetic_operator) {
+            case Operators.EQUALS:
+                return Operators.EMPTY;
+            case Operators.Arithmetic.Compound.ADDITION:
+                return variable_name + " " + Operators.Arithmetic.ADDITION + " " + Operators.OPENING_PARENTHESIS;
+            case Operators.Arithmetic.Compound.SUBTRACTION:
+                return variable_name + " " + Operators.Arithmetic.SUBTRACTION + " " + Operators.OPENING_PARENTHESIS;
+            case Operators.Arithmetic.Compound.MULTIPLICATION:
+                return variable_name + " " + Operators.Arithmetic.MULTIPLICATION + " " + Operators.OPENING_PARENTHESIS;
+            case Operators.Arithmetic.Compound.DIVISION:
+                return variable_name + " " + Operators.Arithmetic.DIVISION + " " + Operators.OPENING_PARENTHESIS;
+            case Operators.Arithmetic.Compound.REMAINDER:
+                return variable_name + " " + Operators.Arithmetic.REMAINDER + " " + Operators.OPENING_PARENTHESIS;
+            default:
+                return Operators.EMPTY;
+        }
+
+    }
+    public string scrubSymbols (string input) {
+        string output = input;
+        if (input.Contains (Operators.END_LINE)) output = input.Remove (input.IndexOf (Operators.END_LINE), 1);
+        return output;
+    }
+
+    public string[] splitIncrement (string input) {
+        string variable_name, variable_operation;
+        input = input.Split (Operators.END_LINE_CHAR) [0]; //remove ; if there
+
+        variable_name = input.Substring (0, input.Length - 2);
+        variable_operation = input.Substring (input.Length - 2);
+
+        switch (variable_operation) {
+            case Operators.Arithmetic.Unary.INCREMENT:
+                return new string[] { variable_name, Operators.EQUALS, variable_name, Operators.Arithmetic.ADDITION, "1" };
+            case Operators.Arithmetic.Unary.DECREMEMT:
+                return new string[] { variable_name, Operators.EQUALS, variable_name, Operators.Arithmetic.SUBTRACTION, "1" };
+
+        }
+        return new string[] { };
+    }
+    public string cast (string input, string cast_type) {
+        if (input != Operators.EMPTY) { //is this necessary? probably...&& Evaluator.getType (getValue (input)) == cast_type) {
+            switch (cast_type) {
+                case Keywords.Type.Value.BOOLEAN:
+                    return bool.Parse (input).ToString ();
+                case Keywords.Type.Value.INTEGER:
+                    return int.Parse (input).ToString ();
+                case Keywords.Type.Value.FLOAT:
+                    return float.Parse (input).ToString ();
+                case Keywords.Type.Reference.STRING:
+                    return input;
+            }
+        }
+        //add cases to convert floats to ints, etc? 
+        //but, preferrably implement casting (int.Parse...)
+        return Operators.EMPTY;
+    }
     /* Step increments the line index after finishing operations for the current line */
     bool update_intermediate = false;
+    int update_line = -1;
     public bool Step() 
     {
         update_intermediate = true;
@@ -60,14 +208,20 @@ public class InterpreterV3
         if (line == s.end_index) 
         {
             if (s.is_loop) line = s.start_index;
-            else scope.pop();
+            else if (scope.count() > 1) scope.pop();
             debug_output += "\nending line " + line;
         }
         /* Grab the current line if empty */
         if (intermediate_line == "" || update_intermediate)  
         {
+            if (update_line != -1) 
+            {
+                line = update_line;
+                update_line = -1;
+            }
             line++;
-            intermediate_line = s.method.lines[line].Trim();
+            if (line > s.method.lines.Count) line = 0;
+            intermediate_line = s.method.lines[line].Trim().TrimEnd(';');
             update_intermediate = false;
             debug_output += "\nLine " + line + ": \"" + intermediate_line + "\"";
         }
@@ -91,8 +245,9 @@ public class InterpreterV3
                     /* Primitive Data Types (PDTs, Instantiated on Stack) */
                     case Keywords.Type.Value.BOOLEAN:
                     case Keywords.Type.Value.INTEGER:
-                    case Keywords.Type.Value.FLOAT:
-                        line_parameters = new string[]{Simplify (intermediate_line.Split('=')[1], s, out line_simplified)};
+                    case Keywords.Type.Value.DOUBLE:
+                        line_parameters = new string[]{Simplify (intermediate_line.Split(Operators.EQUALS[0])[1], s, out line_simplified)};
+                        debug_output += "\nAFTER =" + intermediate_line.Split(Operators.EQUALS[0])[1] + "\nRESULT =" + line_parameters[0];
                         intermediate_line = line_parts[0] + " " + line_parts[1] + " = " + line_parameters[0];
                         if (line_simplified)
                         {
@@ -124,7 +279,7 @@ public class InterpreterV3
                             }
                             else 
                             {
-                                line = end_line;
+                                update_line = end_line;
                             }
                             return Step();
                         }
@@ -136,7 +291,7 @@ public class InterpreterV3
                             
                             if (intermediate_line.Contains(Operators.EQUALS)) 
                             {
-                                line_parameters = new string[]{Simplify (intermediate_line.Split('=')[1], s, out line_simplified)};
+                                line_parameters = new string[]{Simplify (intermediate_line.Split(Operators.EQUALS[0])[1], s, out line_simplified)};
                                 intermediate_line = line_parts[0] + " = " + line_parameters[0];
                                 if (line_simplified)
                                 {
@@ -148,7 +303,7 @@ public class InterpreterV3
                             /* CHECK IF LINE REFERS TO A VARIABLE, e.g. "i = 10;" */
                             // scope.setPrimitive(intermediate_line);
                         }
-                        return Step();
+                        return false;
                 }
                 return true;
             // case Keywords.Statement.Jump.CONTINUE:
@@ -259,80 +414,54 @@ public class InterpreterV3
         target_class = name;
     }
     /* Simplify complex statements into simple ones, managing PEMDAS, function calls, etc. */
-    public static string Simplify (string line_in, Scope local_scope, out bool simplified) {
-
+    public string Simplify (string line_in, Scope local_scope, out bool simplified) {
         /* Assume given line is not fully simplified until proven otherwise */
         simplified = false;
-
-        string beginning_section = "";
-
-        if (line_in.IndexOf (" = ") >= 0) {
-            beginning_section = line_in.Substring (0, line_in.IndexOf (" = ") + 3);
-            line_in = line_in.Substring (line_in.IndexOf (" = ") + 2);
-        }
-
-        //NOTE: LOOK ALWAYS TO THE RIGHT OF AN "=" SIGN... supports things like "int i = 5 + 10" cleanly with no edge cases, when simplfiied, set i = 15... 
-
         /* Handling parenthesis, whether for PEDMAS manipulation or function calls */
         if (line_in.Contains (Operators.OPENING_PARENTHESIS)) {
-
             int start_of_parenthesis = 0;
             string inner_snippet = line_in;
-
             while (inner_snippet.Contains (Operators.OPENING_PARENTHESIS)) {
-
                 start_of_parenthesis += inner_snippet.IndexOf (Operators.OPENING_PARENTHESIS);
                 inner_snippet = inner_snippet.Substring (inner_snippet.IndexOf (Operators.OPENING_PARENTHESIS) + 1);
                 inner_snippet = inner_snippet.Substring (0, getLengthToClosingParenthesis (inner_snippet, 0));
             }
-
-            return beginning_section + line_in.Remove (start_of_parenthesis, inner_snippet.Length + 2)
+            return line_in.Remove (start_of_parenthesis, inner_snippet.Length + 2)
                 .Insert (start_of_parenthesis, SimplifyOperation (inner_snippet, local_scope, out simplified));
         }
-        return beginning_section + SimplifyOperation (line_in, local_scope, out simplified);
+        return SimplifyOperation (line_in, local_scope, out simplified);
     }
 
-    private static string SimplifyOperation (string input, Scope local_scope, out bool simplified) {
-
+    private string SimplifyOperation (string input, Scope local_scope, out bool simplified) {
         /* Example input for this function: "4 + 4 * 4" */
         /* Note: Since step() manages any parenthesis-related PEDMAS, so that isn't handled in this function */
-
         /* Splits along spaces, e.g. ["4", "+", "4", "*", "4"] */
         List<string> parts = input.Split (Operators.SPLIT, StringSplitOptions.RemoveEmptyEntries).ToList ();
-
         /* If line is just "x", replace "x" with x's value */
-        if (parts.Count () == 1) {
+        if (parts.Count == 1) {
             simplified = true;
             return local_scope.getValue (parts[0]);
         }
-
         /* Otherwise, parts needs to be condensed before being fully simplified */
         simplified = false;
-
         /* PEDMAS, e.g. ["4", "+", 4, "*", "4"] ==> ["4", "+", "16"] */
         /* First Modulus, then Multiplication and Division together, then Addition and Subtraction together, etc. */
         for (int operation_set = 0; operation_set < Operators.PEMDAS.Length; operation_set++) {
-
             /* Look for operations (the odd indices of the parts array)  */
-            for (int part = 1; part < parts.Count () - 1; part += 2) {
-
+            for (int part = 1; part < parts.Count - 1; part += 2) {
                 /* Check if operation of input matches current order of PEMDAS */
                 if (Operators.PEMDAS[operation_set].Contains (parts[part] + Operators.TAB)) {
-
                     /* Replace any variable's mnemonic name with it's value */
                     string left = local_scope.getValue (parts[part - 1]),
                         right = local_scope.getValue (parts[part + 1]);
-
                     /* Execute operation between two values, compresses three parts into one, e.g. ["4", "*", "4"] ==> ["16", "*", "4"] ==> ["16"] */
-                    parts[part - 1] = simplify (left, parts[part], right);
+                    parts[part - 1] = Equate (left, parts[part], right);
                     parts.RemoveRange (part, 2);
-
                     /* Fully simplified */
-                    if (parts.Count () == 1) {
+                    if (parts.Count == 1) {
                         simplified = true;
                         return local_scope.getValue (parts[0]);
                     }
-
                     /* Recombine parts to resulting, simplified "4 + 16" */
                     /* Note: It chooses to evaluate multiplication before addition, correctly following PEMDAS */
                     return String.Join (Operators.SPACE, parts.ToArray ());
@@ -361,14 +490,14 @@ public class InterpreterV3
     private static float float_result;
     private static bool bool_result;
 
-    public static string simplify (string input) {
-        if (input.Contains(" ")) {
-            var parts = input.Split(' ');
-            return simplify (parts[0], parts[1], parts[2]);
-        }
-        return input;
-    }
-    public static string simplify (string left, string arithmetic_operator, string right) {
+    // public static string simplify (string input) {
+    //     if (input.Contains(" ")) {
+    //         var parts = input.Split(' ');
+    //         return simplify (parts[0], parts[1], parts[2]);
+    //     }
+    //     return input;
+    // }
+    public string Equate (string left, string arithmetic_operator, string right) {
         /* e.g. ["12", "*", "4"] ==> ["48"] */
         string left_type = getType (left), right_type = getType (right);
         if (left_type == right_type) {
@@ -390,153 +519,7 @@ public class InterpreterV3
         /* CASTS NOT HANDLED, e.g. "true + 1.0", TREAT AS STRINGS */
         return simplifyString (left, arithmetic_operator, right);
     }
-    public static string simplifyBooleans (bool left, string arithmetic_operator, bool right) {
-        switch (arithmetic_operator) {
-            case Operators.Boolean.EQUALITY:
-                return (left == right).ToString ().ToLower();
-            case Operators.Boolean.AND:
-                return (left && right).ToString ().ToLower();
-            case Operators.Boolean.OR:
-                return (left || right).ToString ().ToLower();
-            default:
-                return "";
-        }
-    }
-    public static string simplifyIntegers (int left, string arithmetic_operator, int right) {
-        switch (arithmetic_operator) {
-            case Operators.Arithmetic.REMAINDER:
-                return (left % right).ToString ();
-            case Operators.Arithmetic.MULTIPLICATION:
-                return (left * right).ToString ();
-            case Operators.Arithmetic.DIVISION:
-                if (right == 0) return 0.ToString();
-                return (left / right).ToString ();
-            case Operators.Arithmetic.ADDITION:
-                return (left + right).ToString ();
-            case Operators.Arithmetic.SUBTRACTION:
-                return (left - right).ToString ();
-            case Operators.Boolean.EQUALITY:
-                return (left == right).ToString ().ToLower();
-            case Operators.Boolean.INEQUALITY:
-                return (left != right).ToString().ToLower();
-            case Operators.Comparison.GREATER_THAN:
-                return (left > right).ToString ().ToLower();
-            case Operators.Comparison.GREATER_THAN_OR_EQUAL:
-                return (left >= right).ToString ().ToLower();
-            case Operators.Comparison.LESS_THAN:
-                return (left < right).ToString ().ToLower();
-            case Operators.Comparison.LESS_THAN_OR_EQUAL:
-                return (left <= right).ToString ().ToLower();
-            default:
-                return "";
-        }
-    }
-    public static string simplifyFloats (float left, string arithmetic_operator, float right) {
-        switch (arithmetic_operator) {
-            case Operators.Arithmetic.REMAINDER:
-                return (left % right).ToString ();
-            case Operators.Arithmetic.MULTIPLICATION:
-                return (left * right).ToString ();
-            case Operators.Arithmetic.DIVISION:
-                return (left / right).ToString ();
-            case Operators.Arithmetic.ADDITION:
-                return (left + right).ToString ();
-            case Operators.Arithmetic.SUBTRACTION:
-                return (left - right).ToString ();
-            case Operators.Boolean.EQUALITY:
-                return (left == right).ToString ().ToLower();
-            case Operators.Boolean.INEQUALITY:
-                return (left != right).ToString().ToLower();
-            case Operators.Comparison.GREATER_THAN:
-                return (left > right).ToString ().ToLower();
-            case Operators.Comparison.GREATER_THAN_OR_EQUAL:
-                return (left >= right).ToString ().ToLower();
-            case Operators.Comparison.LESS_THAN:
-                return (left < right).ToString ().ToLower();
-            case Operators.Comparison.LESS_THAN_OR_EQUAL:
-                return (left <= right).ToString ().ToLower();
-            default:
-                return "";
-        }
-    }
-    public static string simplifyString (string left, string arithmetic_operator, string right) {
-        if (left.IndexOf ("\"") == 0) left = left.Substring (1, left.Length - 2);
-        if (right.IndexOf ("\"") == 0) right = right.Substring (1, right.Length - 2);
-        switch (arithmetic_operator) {
-            case Operators.Arithmetic.ADDITION:
-                return left + right;
-            case Operators.Boolean.EQUALITY:
-                return (left == right).ToString ().ToLower();
-            case Operators.Boolean.INEQUALITY:
-                return (left != right).ToString().ToLower();
-            default:
-                return "";
-        }
-    }
-    public static string getType (string input) {
-        if (bool.TryParse (input, out bool_result)) return Keywords.Type.Value.BOOLEAN;
-        if (int.TryParse (input, out int_result)) return Keywords.Type.Value.INTEGER;
-        if (float.TryParse (input, out float_result)) return Keywords.Type.Value.FLOAT;
-        return Keywords.Type.Reference.STRING;
-    }
-    public static string simplifyCondensedOperators (string variable_name, string arithmetic_operator) {
-        switch (arithmetic_operator) {
-            case Operators.EQUALS:
-                return Operators.EMPTY;
-            case Operators.Arithmetic.Compound.ADDITION:
-                return variable_name + " " + Operators.Arithmetic.ADDITION + " " + Operators.OPENING_PARENTHESIS;
-            case Operators.Arithmetic.Compound.SUBTRACTION:
-                return variable_name + " " + Operators.Arithmetic.SUBTRACTION + " " + Operators.OPENING_PARENTHESIS;
-            case Operators.Arithmetic.Compound.MULTIPLICATION:
-                return variable_name + " " + Operators.Arithmetic.MULTIPLICATION + " " + Operators.OPENING_PARENTHESIS;
-            case Operators.Arithmetic.Compound.DIVISION:
-                return variable_name + " " + Operators.Arithmetic.DIVISION + " " + Operators.OPENING_PARENTHESIS;
-            case Operators.Arithmetic.Compound.REMAINDER:
-                return variable_name + " " + Operators.Arithmetic.REMAINDER + " " + Operators.OPENING_PARENTHESIS;
-            default:
-                return Operators.EMPTY;
-        }
 
-    }
-    public static string scrubSymbols (string input) {
-        string output = input;
-        if (input.Contains (Operators.END_LINE)) output = input.Remove (input.IndexOf (Operators.END_LINE), 1);
-        return output;
-    }
-
-    public static string[] splitIncrement (string input) {
-        string variable_name, variable_operation;
-        input = input.Split (Operators.END_LINE_CHAR) [0]; //remove ; if there
-
-        variable_name = input.Substring (0, input.Length - 2);
-        variable_operation = input.Substring (input.Length - 2);
-
-        switch (variable_operation) {
-            case Operators.Arithmetic.Unary.INCREMENT:
-                return new string[] { variable_name, Operators.EQUALS, variable_name, Operators.Arithmetic.ADDITION, "1" };
-            case Operators.Arithmetic.Unary.DECREMEMT:
-                return new string[] { variable_name, Operators.EQUALS, variable_name, Operators.Arithmetic.SUBTRACTION, "1" };
-
-        }
-        return new string[] { };
-    }
-    public static string cast (string input, string cast_type) {
-        if (input != Operators.EMPTY) { //is this necessary? probably...&& Evaluator.getType (getValue (input)) == cast_type) {
-            switch (cast_type) {
-                case Keywords.Type.Value.BOOLEAN:
-                    return bool.Parse (input).ToString ();
-                case Keywords.Type.Value.INTEGER:
-                    return int.Parse (input).ToString ();
-                case Keywords.Type.Value.FLOAT:
-                    return float.Parse (input).ToString ();
-                case Keywords.Type.Reference.STRING:
-                    return input;
-            }
-        }
-        //add cases to convert floats to ints, etc? 
-        //but, preferrably implement casting (int.Parse...)
-        return Operators.EMPTY;
-    }
     // string.Join("\n", scope.peek().method.lines.ToArray())
     public override string ToString() {
         string output = "";
@@ -571,8 +554,11 @@ public class ScopeObj
     {
         stack.Peek().setPrimitive(line);
     }
+    public int count() {
+        return stack.Count;
+    }
     public Scope peek() {
-        if (stack.Count() == 0) return null;
+        if (count() == 0) return null;
         return stack.Peek();
     }
     public void push (Scope scope) {
@@ -618,7 +604,7 @@ public class Scope
     }
     public int hasVariable (string name) 
     {
-        for (int i = 0; i < variables.Count(); i++)
+        for (int i = 0; i < variables.Count; i++)
         { 
             if (variables[i].name == name) return i;
         }
@@ -626,23 +612,23 @@ public class Scope
     }
     public void setPrimitive (string line) 
     {   /* e.g. "int i = 123;".Split(' ') */
-        /*      ["int", "i", "=", "123;"] */
+        /*      ["int", "i", "=", "123"] */
         /*      [l[0], l[1], l[2], l[3]"] */
         var l = line.Split (' ');
         var i = hasVariable(l[0]);
         if (i != -1) 
         {
-            variables[i].value = l[2].Substring(0, l[2].Length - 1);
+            variables[i].value = l[2];
             return;
         }
         i = hasVariable(l[1]);
         if (i == -1) 
         {
-            variables.Add(new Field(l[1], l[0], l[3].Substring(0, l[3].Length - 1)));
+            variables.Add(new Field(l[1], l[0], l[3]));
         }
         else 
         {
-            variables[i].value = l[3].Substring(0, l[3].Length - 1);
+            variables[i].value = l[3];
         }
     }
     public override string ToString() 
@@ -693,7 +679,7 @@ public class ClassObj
             // Iterate️ class
             case "ℹ":
                 name = "Iterate";
-                methods.Add(new Method(this, "Main", "_Entry_point_", "void", new List<Field>(){new Field("args", "String[]")}, new List<string>(){"//_New_line", "$", "int i = 2;", "if (i + 1 < 5 + 2 * 4 + 10)", "{", "int j = 4;", "i = i + j + 1 + 2 + 3 + i + j;", "j = i + j + 1 + 2 + 3 + i + j;","int g = 1000 * 5 / 100;","Object obj = new Object();", "int k = 23 + 54 + 2342;", "}", "String test = \"Hello\";", "Object other = new Object();", "int abc = 123;", "double xyz = 987;", "bool primitive = false;"}));
+                methods.Add(new Method(this, "Main", "_Entry_point_", "void", new List<Field>(){new Field("args", "String[]")}, new List<string>(){"//_New_line", "$", "int i = 2;", "int id = i * i * i;", "if (i + 1 < 5 + 2 * 4 + 10)", "{", "int j = 4;", "i = i + j + 1 + 2 + 3 + i + j;", "j = i + j + 1 + 2 + 3 + i + j;","int g = 1000 * 5 / 100;","Object obj = new Object();", "int k = 23 + 54 + 2342;", "}", "String test = \"Hello\";", "Object other = new Object();", "int abc = 123;", "double xyz = 987;", "bool primitive = false;", "bool otherbool = true;"}));
                 // methods.Add(new Method("SumArray (int[] input)", "Return_sum_of_input_array", "int", "  int total = 0;\n  for (int i = 0; i < input.Length(); i++)\n  {\n    total += input[i];\n  }\n  return total;"));
                 break;
             // BitNaughts constant class
@@ -771,7 +757,7 @@ public class ClassObj
             if (m.name == method_name) 
             {
                 int indent_count = 2;
-                for (int i = 0; i < m.lines.Count(); i++) 
+                for (int i = 0; i < m.lines.Count; i++) 
                 {
                     if (m.lines[i].Contains(Operators.CLOSING_BRACKET))
                     {
@@ -832,7 +818,7 @@ public class Method
     }
     public int EndOfScope (int index) {
         int indent_count = 0;
-        for (int i = index + 1; i < lines.Count(); i++)
+        for (int i = index + 1; i < lines.Count; i++)
         {
             if (lines[i].Contains(Operators.OPENING_BRACKET)) 
             {
@@ -852,7 +838,7 @@ public class Method
     public string IndentedLines() {
         string output = "";
         int indent_count = 2;
-        for (int i = 0; i < lines.Count(); i++)
+        for (int i = 0; i < lines.Count; i++)
         {
             if (lines[i].Contains(Operators.CLOSING_BRACKET))
             {
