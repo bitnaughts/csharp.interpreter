@@ -9,7 +9,12 @@ public class InterpreterV3
     ScopeObj scope;
     HeapObj heap;
     string target_class = "", intermediate_line = "", debug_output = "";
-    int line;
+    int line = -1, update_line = -1;
+    bool update_intermediate = false;
+
+    private static int int_result;
+    private static float float_result;
+    private static bool bool_result;
     /* InterpreterV3 takes a list of classes, one of which must contain a "Main" method */
     public InterpreterV3(List<ClassObj> classes) 
     {
@@ -142,7 +147,6 @@ public class InterpreterV3
         if (input.Contains (Operators.END_LINE)) output = input.Remove (input.IndexOf (Operators.END_LINE), 1);
         return output;
     }
-
     public string[] splitIncrement (string input) {
         string variable_name, variable_operation;
         input = input.Split (Operators.END_LINE_CHAR) [0]; //remove ; if there
@@ -177,8 +181,6 @@ public class InterpreterV3
         return Operators.EMPTY;
     }
     /* Step increments the line index after finishing operations for the current line */
-    bool update_intermediate = false;
-    int update_line = -1;
     public bool Step() 
     {
         update_intermediate = true;
@@ -220,7 +222,7 @@ public class InterpreterV3
                 update_line = -1;
             }
             line++;
-            if (line > s.method.lines.Count) line = 0;
+            if (line >= s.method.lines.Count) line = 0;
             intermediate_line = s.method.lines[line].Trim().TrimEnd(';');
             update_intermediate = false;
             debug_output += "\nLine " + line + ": \"" + intermediate_line + "\"";
@@ -275,7 +277,7 @@ public class InterpreterV3
                         {
                             if (line_parameters[1] == "true")
                             {
-                                scope.push (new Scope(s.method, line, end_line, false, s.variables));
+                                scope.push (new Scope(s.method, line, end_line, false, s.variables.ToList())); //.ToList() clones via shallow copy
                             }
                             else 
                             {
@@ -486,17 +488,6 @@ public class InterpreterV3
         }
         return count;
     }
-    private static int int_result;
-    private static float float_result;
-    private static bool bool_result;
-
-    // public static string simplify (string input) {
-    //     if (input.Contains(" ")) {
-    //         var parts = input.Split(' ');
-    //         return simplify (parts[0], parts[1], parts[2]);
-    //     }
-    //     return input;
-    // }
     public string Equate (string left, string arithmetic_operator, string right) {
         /* e.g. ["12", "*", "4"] ==> ["48"] */
         string left_type = getType (left), right_type = getType (right);
@@ -519,25 +510,33 @@ public class InterpreterV3
         /* CASTS NOT HANDLED, e.g. "true + 1.0", TREAT AS STRINGS */
         return simplifyString (left, arithmetic_operator, right);
     }
-
-    // string.Join("\n", scope.peek().method.lines.ToArray())
     public override string ToString() {
         string output = "";
-        var s = scope.peek();
-        foreach (var c in classes) 
+        if (scope == null) 
         {
-            if (s != null && s.method != null && s.method.class_obj != null && c.name == s.method.class_obj.name)
+            foreach (var c in classes) 
             {
-                if (intermediate_line == "") 
+                output += c.ToString();
+            } 
+        }
+        else 
+        {
+            var s = scope.peek();
+            foreach (var c in classes) 
+            {
+                if (s != null && s.method != null && s.method.class_obj != null && c.name == s.method.class_obj.name)
                 {
-                    output += c.ToString();
+                    if (intermediate_line == "") 
+                    {
+                        output += c.ToString();
+                    }
+                    else 
+                    {
+                        output += c.ToString(s.method.name, line, intermediate_line);
+                    }
                 }
-                else 
-                {
-                    output += c.ToString(s.method.name, line, intermediate_line);
-                }
-            }
-        } 
+            } 
+        }
         output += "\n\n" + scope.ToString() + "\n" + heap.ToString() + "\nDebug:\n" + debug_output + "\n\nClock: " + System.DateTime.Now.ToString("hh:mm:ss");
         debug_output = "";
         return output;
