@@ -153,12 +153,6 @@ public class InterpreterV3
         }
 
     }
-    public string scrubSymbols (string input)
-    {
-        string output = input;
-        if (input.Contains (Operators.END_LINE)) output = input.Remove (input.IndexOf (Operators.END_LINE), 1);
-        return output;
-    }
     public string[] splitIncrement (string input)
     {
         string variable_name, variable_operation;
@@ -391,21 +385,8 @@ public class InterpreterV3
                         return false;
                 }
                 return true;
-            //     
         }
         return false;
-        // if (scope.isFinished ()) return true;
-        // else {
-        //     if (line_simplified)
-        //         scope.step ();
-        //         for (int i = 0; i < script.Count; i++)
-        //         {
-        //             script[i] = script_saved[i];
-        //         }
-        //     }
-        //     // listener_handler.updateListeners (this);
-        //     return false;
-        // }
     } 
     public void SetTargetClass(string name) 
     {
