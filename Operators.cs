@@ -34,7 +34,7 @@ public static class Operators {
         TAB = "\t",
         NEW_LINE = "\n",
         COMMENT = "//";
-    public const char END_LINE_CHAR = ';', COMMENT_CHAR = '/', DOLLAR_SIGN = '$', OPENING_BRACKET_CHAR = '{', CLOSING_BRACKET_CHAR = '}';
+    public const char END_LINE_CHAR = ';', COMMENT_CHAR = '/', DOLLAR_SIGN = '$', OPENING_BRACKET_CHAR = '{', CLOSING_BRACKET_CHAR = '}', EQUALS_CHAR = '=';
 
 
     /* For the Parser.simplify() function */
