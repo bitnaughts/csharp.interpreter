@@ -701,7 +701,7 @@ public class ClassObj
             // Iterate️ class
             case "ℹ":
                 name = "Iterate";
-                methods.Add(new Method(this, "Main", "_Entry_point_", "void", new List<Field>(){new Field("args", "String[]")}, new List<string>(){"//_New_line", "$", "String intro = \"Hello_World!\";", "for (int i = 0; i < 10; i = i + 1)", "{", "for (int j = i; j < 10; j = j + 1)", "{", "int k = i * j * 2;", "}", "}"}));
+                methods.Add(new Method(this, "Main", "_Entry_point_", "void", new List<Field>(){new Field("args", "String[]")}, new List<string>(){"//_New_line", "$", "String intro = \"Hello_World!\";", "double num = 1 + 3.14 * 2 / 0.5;", "if (num < 0)", "{", "}", "for (int i = 0; i < 10 * 10; i = i + 1)", "{", "for (int j = 0; j < 2 * i; j = j + 1 + 1)", "{", "int k = i * j * 2;", "}", "}"}));
                 // methods.Add(new Method("SumArray (int[] input)", "Return_sum_of_input_array", "int", "  int total = 0;\n  for (int i = 0; i < input.Length(); i++)\n  {\n    total += input[i];\n  }\n  return total;"));
                 break;
             // BitNaughts constant class
