@@ -576,10 +576,12 @@ public class ScopeObj
     public override string ToString() 
     {
         string output = "Stack:\n";
-        output += stack.Peek().VariableString();
-        foreach (var s in stack.ToArray ()) 
-        {
-            output += s.ToString () + "\n";
+        if (stack.Count > 0) {
+            output += stack.Peek().VariableString();
+            foreach (var s in stack.ToArray ()) 
+            {
+                output += s.ToString () + "\n";
+            }
         }
         return output;
     }
@@ -759,7 +761,7 @@ public class ClassObj
 
     public override string ToString()
     {
-        string output = "class " + name + "\n{\n  //_New_field\n  $\n";
+        string output = "class " + name + "\n{\n";//  //_New_field\n  $\n";
         foreach (var f in fields.ToArray())
         {
             output += f.ToString() + "\n";
@@ -768,7 +770,7 @@ public class ClassObj
         {
             output += m.ToString() + "\n";
         }
-        return output + "  //_New_method\n  $\n}";
+        return output + "}"; //  //_New_method\n  $
     }
     public string ToString(string method_name, int index, string intermediate_line)
     {
