@@ -7,6 +7,8 @@ public class InterpreterV3
 {
     List<ClassObj> classes;
     ScopeObj scope;
+    Scope next_scope; // On the next tick, push to the scope stack
+    bool previous_scope = false; // On the next tick, pop the scope stack
     HeapObj heap;
     string target_class = "", intermediate_line = "", debug_output = "";
     string[] split_line;
@@ -211,6 +213,24 @@ public class InterpreterV3
             debug_output += "No local scope";
             return false;
         }
+        if (previous_scope) 
+        {
+            previous_scope = false;
+            line = scope.pop();
+            s = scope.peek ();
+            intermediate_line = "void";//s.method.lines[line].Trim().TrimEnd(';');
+            update_intermediate = true;
+            return true;
+        }
+        if (next_scope != null) 
+        {
+            scope.push (next_scope);
+            // intermediate_line = "";
+            line = next_scope.start_index - 1;
+            next_scope = null;
+            update_intermediate = true;
+            return true;
+        }
         if (intermediate_line == "" || update_intermediate) /* Grab the current line if empty */
         {
             if (update_line != -1) 
@@ -218,8 +238,16 @@ public class InterpreterV3
                 line = update_line;
                 update_line = -1;
             }
-            line++;
-            if (line >= s.method.lines.Count) line = 0;
+            else 
+            {
+                line++;
+            }
+            if (line >= s.method.lines.Count) 
+            {
+                update_line = scope.pop();
+                return true;
+                // line = 0;
+            }
             intermediate_line = s.method.lines[line].Trim().TrimEnd(';');
             update_intermediate = false;
         }
@@ -232,8 +260,8 @@ public class InterpreterV3
             case Operators.OPENING_BRACKET_CHAR:
                 return Step();
             case Operators.CLOSING_BRACKET_CHAR:
-                if (s.is_loop) update_line = s.start_index - 1;
-                else if (scope.count() > 1) scope.pop();
+                if (s.is_loop) update_line = s.start_index;
+                else if (scope.count() > 1) update_line = scope.pop();
                 return Step();
             default:
                 /* Split the intermediate line into its parts */
@@ -243,13 +271,18 @@ public class InterpreterV3
                 /* Determine operation */
                 switch (line_parts[0]) 
                 {
+                    case Keywords.Statement.Jump.RETURN:
+                        previous_scope = true;
+                        // update_line = scope.pop ();
+                        // update_intermediate = true;
+                        return true;
                     case Keywords.Statement.Jump.CONTINUE:
                         line = s.start_index;
-                        break;
+                        return true;
                     case Keywords.Statement.Jump.BREAK:
                         line = s.end_index;
-                        scope.pop ();
-                        break;
+                        update_line = scope.pop ();
+                        return true;
                     /* Primitive Data Types (PDTs, Instantiated on Stack) */
                     case Keywords.Type.Value.BOOLEAN:
                     case Keywords.Type.Value.INTEGER:
@@ -266,7 +299,7 @@ public class InterpreterV3
                     /* Objects (Instantiated on Heap) */
                     case Keywords.Type.Reference.STRING:
                     case Keywords.Type.Reference.OBJECT:
-                        heap.add(intermediate_line); // TODO, generalize to support constructors/heap
+                        // heap.add(new Field(intermediate_line)); // TODO, generalize to support constructors/heap
                         return Step();
                         // if (scope.hasVariable(line_parts[1])
                             // index++; /* Already set, move on */
@@ -282,6 +315,7 @@ public class InterpreterV3
                             end_line = s.method.EndOfScope(line);
                             if (line_parameters[1] == "true")
                             {
+                                // next_scope = new Scope(s.method, line, end_line, false, s.variables.ToList());
                                 scope.push (new Scope(s.method, line, end_line, false, s.variables.ToList())); //.ToList() clones via shallow copy
                             }
                             else 
@@ -313,8 +347,8 @@ public class InterpreterV3
                                     }
                                     else 
                                     {
-                                        scope.pop();
-                                        update_line = end_line;
+                                        update_line = scope.pop();//end_line + 1;
+                                        return true;
                                     }
                                 }
                                 else 
@@ -323,12 +357,14 @@ public class InterpreterV3
                                     return true;
                                 }
                             }
-                            else {
+                            else 
+                            {
                                 intermediate_line = line_parts[0] + " (" + line_parameters[1] + "; " + line_parameters[2] + "; " + line_parameters[3] + ")";
                                 return true;
                             }
-
-                        } else {
+                        } 
+                        else 
+                        {
                             /* For loop has not run in scope before, declare the variable */
                             line_parameters[1] = Simplify (line_parameters[1], s, out line_simplified);
                             if (line_simplified)
@@ -342,12 +378,16 @@ public class InterpreterV3
                                     if (line_parameters[2] == "true")
                                     {
                                         scope.push (new Scope(s.method, line, end_line, true, s.variables.ToList())); //.ToList() clones via shallow copy
+
+                                        // next_scope = new Scope(s.method, line, end_line, true, s.variables.ToList());
+                                        return Step();
+                                        // scope.push ()); //.ToList() clones via shallow copy
                                     }
                                     else 
                                     {
-                                        update_line = end_line;
+                                        update_line = end_line + 1;
+                                        return Step();
                                     }
-                                    return Step();
                                 }
                                 else 
                                 {
@@ -379,7 +419,48 @@ public class InterpreterV3
                             }
                             /* CHECK IF LINE REFERS TO A VARIABLE, e.g. "i = 10;" */
                             // scope.setPrimitive(intermediate_line);
-                        } else {
+                        } 
+                        else
+                        {
+                            foreach (var m in s.method.class_obj.methods)
+                            {
+                                if (line_parts[0] == m.name)
+                                {
+                                    if (s.method.name == m.name) 
+                                    {
+                                        // update_line = -1;
+                                        // return Step();
+                                        return true;
+                                    }
+                                    else 
+                                    {
+                                        next_scope = new Scope(m, 0, m.lines.Count, false, s.method.class_obj.fields.ToList()); //.ToList() shallow-copies
+                                        s.return_index = line;
+                                        return true;
+                                    }
+                                }
+                            }
+                            foreach (var c in classes)
+                            {
+                                if (line_parts[0] == c.name)
+                                {
+                                    // heap.add(intermediate_line);
+                                    return Step();
+                                }
+                                // foreach (var h in heap)
+                                // {
+                                    
+
+                                // }
+                                // foreach (var m in c.methods)
+                                // {
+                                //     if (line_parts[0] == c.name + "." + m.name)
+                                //     {
+                                //         next_scope = new Scope(m, 0, m.lines.Count, false, s.method.class_obj.fields.ToList());
+                                //         return true;
+                                //     }
+                                // }
+                            }
                             debug_output += "Not able to process line" + intermediate_line;
                         }
                         return false;
@@ -423,17 +504,15 @@ public class InterpreterV3
 
     private string SimplifyOperation (string input, Scope local_scope, out bool simplified)
     {
-        /* Example input for this function: "4 + 4 * 4" */
-        /* Note: Since step() manages any parenthesis-related PEDMAS, so that isn't handled in this function */
-        /* Splits along spaces, e.g. ["4", "+", "4", "*", "4"] */
+        /* e.g. "4 + 4 * 4" */
         List<string> parts = input.Split (Operators.SPLIT, StringSplitOptions.RemoveEmptyEntries).ToList ();
-        /* If line is just "x", replace "x" with x's value */
+        /* ["4", "+", "4", "*", "4"] */
         if (parts.Count == 1)
         {
             simplified = true;
-            return local_scope.getValue (parts[0]);
+            /* If a variable, convert to temporary value */
+            return local_scope.getValue (parts[0]); 
         }
-        /* Otherwise, parts needs to be condensed before being fully simplified */
         simplified = false;
         /* PEDMAS, e.g. ["4", "+", 4, "*", "4"] ==> ["4", "+", "16"] */
         /* First Modulus, then Multiplication and Division together, then Addition and Subtraction together, etc. */
@@ -448,24 +527,24 @@ public class InterpreterV3
                     /* Replace any variable's mnemonic name with it's value */
                     string left = local_scope.getValue (parts[part - 1]),
                         right = local_scope.getValue (parts[part + 1]);
-                    /* Execute operation between two values, compresses three parts into one, e.g. ["4", "*", "4"] ==> ["16", "*", "4"] ==> ["16"] */
+                    /* Execute operation between two values, compresses three parts into one */
+                    /* ["4", "*", "4"] --> ["16", "*", "4"] --> ["16"] */
                     parts[part - 1] = Equate (left, parts[part], right);
                     parts.RemoveRange (part, 2);
                     /* Fully simplified */
                     if (parts.Count == 1)
                     {
                         simplified = true;
+                        /* If a variable, convert to temporary value */
                         return local_scope.getValue (parts[0]);
                     }
                     /* Recombine parts to resulting, simplified "4 + 16" */
-                    /* Note: It chooses to evaluate multiplication before addition, correctly following PEMDAS */
                     return String.Join (Operators.SPACE, parts.ToArray ());
                 }
             }
         }
         return "";
     }
-
     public static int getLengthToClosingParenthesis (string line_in, int start_index)
     {
 
@@ -514,31 +593,25 @@ public class InterpreterV3
     public override string ToString()
     {
         string output = "";
-        if (scope == null) 
+        foreach (var c in classes) 
         {
-            foreach (var c in classes) 
+            if (scope != null) 
+            {
+                var s = scope.peek();
+                if (s != null && s.method != null && s.method.class_obj != null && c.name == s.method.class_obj.name && intermediate_line != "") 
+                {
+                    output += c.ToString(s.method.name, line, intermediate_line);
+                }
+                else 
+                {
+                    output += c.ToString();
+                }
+            }
+            else 
             {
                 output += c.ToString();
-            } 
-        }
-        else 
-        {
-            var s = scope.peek();
-            foreach (var c in classes) 
-            {
-                if (s != null && s.method != null && s.method.class_obj != null && c.name == s.method.class_obj.name)
-                {
-                    if (intermediate_line == "") 
-                    {
-                        output += c.ToString();
-                    }
-                    else 
-                    {
-                        output += c.ToString(s.method.name, line, intermediate_line);
-                    }
-                }
-            } 
-        }
+            }
+        } 
         output += "\n\n" + scope.ToString() + "\n" + heap.ToString() + "\nDebug:\n" + debug_output + "\n\nClock: " + System.DateTime.Now.ToString("hh:mm:ss");
         debug_output = "";
         return output;
@@ -569,9 +642,11 @@ public class ScopeObj
     {
         stack.Push (scope);
     }
-    public void pop ()
+    public int pop ()
     {
+        if (stack.Count == 0) return -1; 
         stack.Pop();
+        return stack.Peek().return_index;
     }
     public override string ToString() 
     {
@@ -591,7 +666,7 @@ public class Scope
 {
     public Method method;
     public List<Field> variables;
-    public int start_index, end_index;
+    public int start_index, end_index, return_index;
     public bool is_loop;
     public Scope (Method method, int start_index, int end_index, bool is_loop, List<Field> variables) 
     {
@@ -645,6 +720,31 @@ public class Scope
                 return;
         }
     }
+    public void setObject (string line) 
+    {
+        var split_line = line.Split (' ');
+        int variable_index;
+        switch (split_line[0]) {
+            case Keywords.Type.Reference.OBJECT:
+            case Keywords.Type.Reference.STRING:
+                /* ["Object", "o", "=", "new Object ()"] */
+                variable_index = hasVariable(split_line[1]);
+                if (variable_index == -1) 
+                {
+                    // heap.Add(new Field(split_line[1], split_line[0], split_line[3]));
+                }
+                else 
+                {
+                    // heap[variable_index].value = split_line[3];
+                }
+                return;
+            default:
+                /* ["i", "=", "0"] */
+                // variable_index = hasVariable(split_line[0]);
+                // heap[variable_index].value = split_line[2];
+                return;
+        }
+    }
     public string VariableString()
     {
         string output = "";
@@ -656,24 +756,26 @@ public class Scope
     }
     public override string ToString() 
     {
-        return method.class_obj.name + "." + method.name + "<" + start_index + "," + end_index + ">";
+        return method.class_obj.name + "." + method.name + "<" + start_index + "," + end_index + "> " + return_index;
     }
 }
-
 public class HeapObj 
 {
-    List<string> heap;
+    List<Field> heap;
     public HeapObj () 
     {
-        heap = new List<string>();
+        heap = new List<Field>();
     }
-    public void add(string input) 
+    public void add (Field f) 
     {
-        if (heap.Contains(input)) 
+        foreach (var h in heap) 
         {
-            heap.Remove(input);
+            if (h.name == f.name) 
+            {
+                heap.Remove(h);
+            }
         }
-        heap.Add(input);
+        heap.Add(f);
     }
     public override string ToString() 
     {
@@ -685,7 +787,6 @@ public class HeapObj
         return output;
     }
 }
-
 public class ClassObj
 {
     public string name = "";
@@ -703,8 +804,15 @@ public class ClassObj
             // Iterate️ class
             case "ℹ":
                 name = "Iterate";
-                methods.Add(new Method(this, "Main", "_Entry_point_", "void", new List<Field>(){new Field("args", "String[]")}, new List<string>(){"//_New_line", "$", "String intro = \"Hello_World!\";", "double num = 1 + 3.14 * 2 / 0.5;", "if (num < 0)", "{", "}", "for (int i = 0; i < 10 * 10; i = i + 1)", "{", "for (int j = 0; j < 2 * i; j = j + 1 + 1)", "{", "int k = i * j * 2;", "}", "}"}));
-                // methods.Add(new Method("SumArray (int[] input)", "Return_sum_of_input_array", "int", "  int total = 0;\n  for (int i = 0; i < input.Length(); i++)\n  {\n    total += input[i];\n  }\n  return total;"));
+                methods.Add(new Method(this, "Main", "_Entry_point_", "void", new List<Field>(){new Field("args", "String[]")}, new List<string>(){"A a = new A ();", "for (int i = 0; i < 10; i = i + 1)", "{", "a.Test ();", "}"}));
+                // methods.Add(new Method(this, "One", "_Example_method_", "void", new List<Field>(), new List<string>(){"int i = 0;", "for (int j = -2; j < 2; j = j + 1)", "{", "Two ();", "}", "return;"}));
+                // methods.Add(new Method(this, "Two", "_Another_method_", "void", new List<Field>(), new List<string>(){"Object obj = new Object ();", "for (int z = 4; z > -4; z = z - 2)", "{", "Three ();", "}", "return;"}));
+                 // methods.Add(new Method("SumArray (int[] input)", "Return_sum_of_input_array", "int", "  int total = 0;\n  for (int i = 0; i < input.Length(); i++)\n  {\n    total += input[i];\n  }\n  return total;"));
+                break;
+            case "a": //Test class "a"
+                name = "A";
+                methods.Add(new Method(this, "A", "_Constructor_", "void", new List<Field>(), new List<string>(){"return;"}));
+                methods.Add(new Method(this, "Test", "_Test_method_", "void", new List<Field>(), new List<string>(){"String word = \"apple\";", "return;"}));
                 break;
             // BitNaughts constant class
             case "◎": //Booster
@@ -770,44 +878,41 @@ public class ClassObj
         {
             output += m.ToString() + "\n";
         }
-        return output + "}"; //  //_New_method\n  $
+        return output + "}\n"; //  //_New_method\n  $
     }
     public string ToString(string method_name, int index, string intermediate_line)
     {
-        string output = "class " + name + "\n{\n  //_New_field\n  $\n";
+        string output = "class " + name + "\n{";
         foreach (var f in fields.ToArray())
         {
-            output += f.ToString() + "\n";
+            output += "\n" + f.ToString();
         }
         foreach (var m in methods.ToArray())
         {
-            output += "  /*" + m.comment + "*/\n  " + m.return_type + " " + m.name + " (" + string.Join(", ", m.parameters) + ")\n  {\n";
-            if (m.name == method_name) 
+            output += "\n  /*" + m.comment + "*/\n  " + m.return_type + " " + m.name + " (" + string.Join(", ", m.parameters) + ")\n  {\n";
+            int indent_count = 2;
+            for (int i = 0; i < m.lines.Count; i++) 
             {
-                int indent_count = 2;
-                for (int i = 0; i < m.lines.Count; i++) 
+                if (m.lines[i].Contains(Operators.CLOSING_BRACKET))
                 {
-                    if (m.lines[i].Contains(Operators.CLOSING_BRACKET))
-                    {
-                        indent_count--;
-                    }
-                    if (i == index) 
-                    {
-                        output += new string(' ', indent_count * 2) + Formatter.Red(intermediate_line.Replace(" ", "_")) + "\n";
-                    }
-                    else 
-                    {
-                        output += new string(' ', indent_count * 2) + m.lines[i].Trim() + "\n";
-                    }
-                    if (m.lines[i].Contains(Operators.OPENING_BRACKET)) 
-                    {
-                        indent_count++;
-                    }
+                    indent_count--;
+                }
+                if (m.name == method_name && i == index) 
+                {
+                    output += new string(' ', indent_count * 2) + Formatter.Red(intermediate_line.Replace(" ", "_")) + "\n";
+                }
+                else 
+                {
+                    output += new string(' ', indent_count * 2) + m.lines[i].Trim() + "\n";
+                }
+                if (m.lines[i].Contains(Operators.OPENING_BRACKET)) 
+                {
+                    indent_count++;
                 }
             }
             output += "  }";
         }
-        return output + "\n  //_New_method\n  $\n}";
+        return output + "\n}\n";
     }
 }
 
