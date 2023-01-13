@@ -21,8 +21,11 @@ public class Formatter {
     public static Color Color_litScreen = new Color (34 / 255f, 76 / 255f, 79 / 255f);
 
 
+    public static string stringify (string line) {
+        return "<color=#" + getStringColor () + ">" + line + "</color>";
+    }
     public static string highlight (string line) {
-        return "<color=#" + getHighlightColor () + "55>" + line + "</mark>";
+        return "<color=#" + getHighlightColor () + ">" + line + "</color>";
     }
     public static string comment (string line) {
         return"<color=#" + getCommentColor () + ">" + line + "</color>";
