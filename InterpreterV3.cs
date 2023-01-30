@@ -816,21 +816,21 @@ public class ClassObj
                 break;
             // BitNaughts constant class
             case "◎": //Booster
-                name = "Booster";
-                fields.Add(new Field("throttle", "double", "0"));
+                name = "Processor";
+                methods.Add(new Method(this, "Main", "_Entry_point_", "void", new List<Field>(){new Field("args", "String[]")}, new List<string>(){"Booster l;", "Booster r;", "Thruster t;", "while (true) {", "l.Fire(Input.Joystick.X);", "r.Fire(-Input.Joystick.X);", "t.Fire(Input.Joystick.Y);", "if (Input.UseWeapon()) {", "l.Fire(-1);", "r.Fire(-1);", "}", "}"}));
                 // methods.Add(new Method("Boost ()", "Throttle_control", "void", "throttle = 100;"));
                 // methods.Add(new Method("Launch ()", "Torpedo_control", "Torpedo", "return new Torpedo( GetLoadedBarrel() );"));
                 // methods.Add(new Method("Ping ()", "Called_periodically", "void", "throttle--;"));
                 break;
             case "◉": //Thruster
-                name = "Thruster";
+                name = "Processor";
                 fields.Add(new Field("throttle", "double", "0"));
                 // methods.Add(new Method("MaxThrottle ()", "Throttle_control_(max)", "void", "throttle = 100;"));
                 // methods.Add(new Method("MinThrottle ()", "Throttle_control_(min)", "void", "throttle = 0;"));
                 break;
             case "◍": //Cannon
-                name = "Cannon";
-                fields.Add(new Field("barrels", "double[]", "{}"));
+                name = "Processor";
+                methods.Add(new Method(this, "Main", "_Entry_point_", "void", new List<Field>(){new Field("args", "String[]")}, new List<string>(){"Cannon cl;", "Cannon cr;", "Thruster tl;", "Thruster tr;", "while (true) {", "tl.Fire(Input.Joystick.X);", "tr.Fire(-Input.Joystick.X);", "tl.Fire(Input.Joystick.Y);", "tr.Fire(Input.Joystick.Y);", "if (Input.UseWeapon()) {", "cl.Fire(-1);", "cr.Fire(-1);", "}", "}"}));
                 // methods.Add(new Method("Fire ()", "Use_weapon_control ", "Shell", "return new Shell( GetLoadedBarrel() );"));
                 break;
             case "▥": //Bulkhead
@@ -851,7 +851,8 @@ public class ClassObj
                 // methods.Add(new Method("Rotate (double delta)", "Rotation_control_(ccw)", "void", "rot += delta;"));
                 break;
             case "◌": //Sensor
-                name = "Sensor";
+                name = "Sensor";                
+                methods.Add(new Method(this, "Main", "_Entry_point_", "void", new List<Field>(){new Field("args", "String[]")}, new List<string>(){"Sensor sl;", "Sensor sr;", "Thruster tl;", "Thruster tr;", "while (true) {", "tl.Fire(Input.Joystick.X);", "tr.Fire(-Input.Joystick.X);", "tl.Fire(Input.Joystick.Y);", "tr.Fire(Input.Joystick.Y);", "if (Input.UseWeapon()) {", "sl.Fire(-1);", "sr.Fire(-1);", "}", "}"}));
                 // methods.Add(new Method("Scan ()", "Measure_distance", "double", "new Ray().Length();"));
                 break;
             case "▦": //Printer
@@ -889,8 +890,8 @@ public class ClassObj
         }
         foreach (var m in methods.ToArray())
         {
-            output += "\n  /*" + m.comment + "*/\n  " + m.return_type + " " + m.name + " (" + string.Join(", ", m.parameters) + ")\n  {\n";
-            int indent_count = 2;
+            output += "\n /*" + m.comment + "*/\n  " + m.return_type + " " + m.name + " (" + string.Join(", ", m.parameters) + ")\n  {\n";
+            int indent_count = 1;
             for (int i = 0; i < m.lines.Count; i++) 
             {
                 if (m.lines[i].Contains(Operators.CLOSING_BRACKET))
@@ -899,18 +900,18 @@ public class ClassObj
                 }
                 if (m.name == method_name && i == index) 
                 {
-                    output += new string(' ', indent_count * 2) + Formatter.Red(intermediate_line.Replace(" ", "_")) + "\n";
+                    output += new string(' ', indent_count * 1) + Formatter.Red(intermediate_line.Replace(" ", "_")) + "\n";
                 }
                 else 
                 {
-                    output += new string(' ', indent_count * 2) + m.lines[i].Trim() + "\n";
+                    output += new string(' ', indent_count * 1) + m.lines[i].Trim() + "\n";
                 }
                 if (m.lines[i].Contains(Operators.OPENING_BRACKET)) 
                 {
                     indent_count++;
                 }
             }
-            output += "  }";
+            output += " }";
         }
         return output + "\n}\n";
     }
@@ -983,7 +984,7 @@ public class Method
             {
                 indent_count--;
             }
-            output += new string(' ', indent_count * 2) + lines[i].Trim() + "\n";
+            output += new string(' ', indent_count * 1) + lines[i].Trim() + "\n";
             if (lines[i].Contains(Operators.OPENING_BRACKET)) 
             {
                 indent_count++;
@@ -993,6 +994,6 @@ public class Method
     }
     public override string ToString ()
     {
-        return "  /*" + comment + "*/\n  " + return_type + " " + name + " (" + string.Join(", ", parameters) + ")\n  {\n" + IndentedLines() + "  }";
+        return " /*" + comment + "*/\n " + return_type + " " + name + " (" + string.Join(", ", parameters) + ") {\n" + IndentedLines() + " }";
     }
 }
