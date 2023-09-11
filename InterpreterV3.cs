@@ -3,6 +3,26 @@ using System.Collections.Generic;
 using System.Linq;
 using System;
 
+
+public class InterpreterInput {
+    public float x, y;
+    public bool fire;
+    public Dictionary<string, ComponentController> components;
+    public InterpreterInput (float x, float y, bool fire, Dictionary<string, ComponentController> components) {
+        this.x = x;
+        this.y = y;
+        this.fire = fire;
+        this.components = components;
+    }
+
+
+}
+
+// public InterpreterComponents
+// {
+        
+// }
+
 public class InterpreterV3
 {
     List<ClassObj> classes;
@@ -199,8 +219,7 @@ public class InterpreterV3
         update_intermediate = true;
         return true;
     }
-    
-    public bool Interpret() /* Interpret executes the next operation found */
+    public bool Interpret(InterpreterInput input) /* Interpret executes the next operation found */
     {
         if (scope == null) 
         {
@@ -248,10 +267,25 @@ public class InterpreterV3
                 return true;
                 // line = 0;
             }
-            intermediate_line = s.method.lines[line].Trim().TrimEnd(';');
+            intermediate_line = s.method.lines[line].Trim();//.TrimEnd(';');
             update_intermediate = false;
         }
-        // debug_output += "\nLine " + line + ": \"" + intermediate_line + "\"";
+        if (intermediate_line.Contains("Input.X")) {
+            intermediate_line = intermediate_line.Replace("Input.X", input.x.ToString("0.00"));
+            input.x = 0;
+            // return true;
+        }
+        if (intermediate_line.Contains("Input.Y")) {
+            intermediate_line = intermediate_line.Replace("Input.Y", input.y.ToString("0.00"));
+            input.y = 0;
+            // return true;
+        }
+        if (intermediate_line.Contains("Input.Fire")) {
+            intermediate_line = intermediate_line.Replace("Input.Fire", input.fire.ToString().ToLower());
+            input.fire = false;
+            // return true;
+        }
+        debug_output += line + ": \"" + intermediate_line + "\"\n";
         /* Determine operation */
         switch (intermediate_line[0]) 
         {
@@ -287,11 +321,11 @@ public class InterpreterV3
                     case Keywords.Type.Value.BOOLEAN:
                     case Keywords.Type.Value.INTEGER:
                     case Keywords.Type.Value.DOUBLE:
-                        line_parameters = new string[]{Simplify (intermediate_line.Split(Operators.EQUALS[0])[1], s, out line_simplified)};
+                        line_parameters = new string[]{Simplify (intermediate_line.Split(Operators.EQUALS[0])[1], s, input, out line_simplified)};
                         intermediate_line = line_parts[0] + " " + line_parts[1] + " = " + line_parameters[0];
                         if (line_simplified)
                         {
-                            scope.setPrimitive(intermediate_line);
+                            scope.setPrimitive(intermediate_line.TrimEnd(';'));
                             return Step();
                         }
                         return true;
@@ -308,7 +342,7 @@ public class InterpreterV3
                     case Keywords.Statement.Iteration.WHILE:
                         /* e.g. "if (i < 10)"    */
                         line_parameters = SubstringHandler.SplitFunction (intermediate_line, Operators.SPLIT_PARAMETERS);
-                        line_parameters[1] = Simplify (line_parameters[1], s, out line_simplified);
+                        line_parameters[1] = Simplify (line_parameters[1], s, input, out line_simplified);
                         intermediate_line = line_parts[0] + " (" + line_parameters[1] + ")";
                         if (line_simplified) 
                         {
@@ -331,11 +365,11 @@ public class InterpreterV3
                         if (line == s.start_index)
                         {
                             /* For loop has run in scope before, modify the variable */
-                            line_parameters[3] = Simplify (line_parameters[3], s, out line_simplified);
+                            line_parameters[3] = Simplify (line_parameters[3], s, input, out line_simplified);
                             if (line_simplified)
                             {
                                 scope.setPrimitive (line_parameters[3]);
-                                line_parameters[2] = Simplify (line_parameters[2], s, out line_simplified);
+                                line_parameters[2] = Simplify (line_parameters[2], s, input, out line_simplified);
 
                                 if (line_simplified) 
                                 {
@@ -366,11 +400,11 @@ public class InterpreterV3
                         else 
                         {
                             /* For loop has not run in scope before, declare the variable */
-                            line_parameters[1] = Simplify (line_parameters[1], s, out line_simplified);
+                            line_parameters[1] = Simplify (line_parameters[1], s, input, out line_simplified);
                             if (line_simplified)
                             {
                                 scope.setPrimitive (line_parameters[1]);
-                                line_parameters[2] = Simplify (line_parameters[2], s, out line_simplified);
+                                line_parameters[2] = Simplify (line_parameters[2], s, input, out line_simplified);
                                 if (line_simplified) 
                                 {
                                     end_line = s.method.EndOfScope(line);
@@ -408,7 +442,7 @@ public class InterpreterV3
                         {
                             if (intermediate_line.Contains(Operators.EQUALS)) 
                             {
-                                line_parameters = new string[]{Simplify (intermediate_line, s, out line_simplified)};
+                                line_parameters = new string[]{Simplify (intermediate_line, s, input, out line_simplified)};
                                 // intermediate_line = line_parts[0] + " = " + line_parameters[0];
                                 if (line_simplified)
                                 {
@@ -452,18 +486,34 @@ public class InterpreterV3
                                     
 
                                 // }
-                                // foreach (var m in c.methods)
-                                // {
-                                //     if (line_parts[0] == c.name + "." + m.name)
-                                //     {
-                                //         next_scope = new Scope(m, 0, m.lines.Count, false, s.method.class_obj.fields.ToList());
-                                //         return true;
-                                //     }
-                                // }
+                                foreach (var m in c.methods)
+                                {
+                                    if (line_parts[0] == c.name + "." + m.name)
+                                    {
+                                        line_parameters = SubstringHandler.SplitFunction (intermediate_line, Operators.SPLIT_PARAMETERS);
+                                        if (line_parameters[1] == "") {
+                                            input.components[c.name].Action();
+                                            return Step();
+                                        }
+                                        line_parameters[1] = Simplify (line_parameters[1], s, input, out line_simplified);
+                                        intermediate_line = line_parts[0] + " (" + line_parameters[1] + ");";
+
+                                        // next_scope = new Scope(m, 0, m.lines.Count, false, s.method.class_obj.fields.ToList());
+                                        // s.return_index = line;
+                                        // line_parts[1] = Simplify (line_parts[1], s, out line_simplified);
+                                        // intermediate_line = line_parts[0] + " (" + line_parts[1].TrimEnd(';') + ");";
+                                        if (line_simplified && input.components.ContainsKey(c.name)) {
+                                            input.components[c.name].Action(float.Parse(line_parameters[1]));
+                                            return Step();
+                                        }
+                                        return true;
+                                    }
+                                }
                             }
-                            debug_output += "Not able to process line" + intermediate_line;
+                            debug_output += "\nNot able to process";
+                            return Step();
                         }
-                        return false;
+                        return Step();
                 }
                 return true;
         }
@@ -474,38 +524,67 @@ public class InterpreterV3
         target_class = name;
     }
     /* Simplify complex statements into simple ones, managing PEMDAS, function calls, etc. */
-    public string Simplify (string line_in, Scope local_scope, out bool simplified)
+    public string Simplify (string line_in, Scope local_scope, InterpreterInput input, out bool simplified)
     {
-        var prefix = "";
-        if (line_in.Contains(Operators.EQUALS)) 
-        {
-            split_line = line_in.Split(Operators.EQUALS_CHAR);
-            prefix = split_line[0] + "= ";
-            line_in = split_line[1];
+        if (line_in == "true" || line_in == "false")  {
+            simplified = true;
+            return line_in;
         }
-        /* Assume given line is not fully simplified until proven otherwise */
-        simplified = false;
-        /* Handling parenthesis, whether for PEDMAS manipulation or function calls */
-        if (line_in.Contains (Operators.OPENING_PARENTHESIS))
-        {
-            int start_of_parenthesis = 0;
-            string inner_snippet = line_in;
-            while (inner_snippet.Contains (Operators.OPENING_PARENTHESIS))
-            {
-                start_of_parenthesis += inner_snippet.IndexOf (Operators.OPENING_PARENTHESIS);
-                inner_snippet = inner_snippet.Substring (inner_snippet.IndexOf (Operators.OPENING_PARENTHESIS) + 1);
-                inner_snippet = inner_snippet.Substring (0, getLengthToClosingParenthesis (inner_snippet, 0));
-            }
-            return prefix + line_in.Remove (start_of_parenthesis, inner_snippet.Length + 2)
-                .Insert (start_of_parenthesis, SimplifyOperation (inner_snippet, local_scope, out simplified));
-        }
-        return prefix + SimplifyOperation (line_in, local_scope, out simplified);
+        // var prefix = "";
+        // if (line_in.Contains(Operators.EQUALS)) {
+        //     split_line = line_in.Split(Operators.EQUALS_CHAR);
+        //     prefix = split_line[0] + "= ";
+        //     line_in = split_line[1];
+        // }
+        // /* Assume given line is not fully simplified until proven otherwise */
+        // simplified = false;
+        
+        // /* Handling parenthesis, whether for PEDMAS manipulation or function calls */
+        // if (line_in.Contains (Operators.OPENING_PARENTHESIS))
+        // {
+        //     int start_of_parenthesis = 0;
+        //     string inner_snippet = line_in;
+        //     while (inner_snippet.Contains (Operators.OPENING_PARENTHESIS))
+        //     {
+        //         start_of_parenthesis += inner_snippet.IndexOf (Operators.OPENING_PARENTHESIS);
+        //         inner_snippet = inner_snippet.Substring (inner_snippet.IndexOf (Operators.OPENING_PARENTHESIS) + 1);
+        //         inner_snippet = inner_snippet.Substring (0, getLengthToClosingParenthesis (inner_snippet, 0));
+        //     }
+        //     return prefix + line_in.Remove (start_of_parenthesis, inner_snippet.Length + 2)
+        //         .Insert (start_of_parenthesis, SimplifyOperation (inner_snippet, local_scope, input, out simplified));
+        // }
+        // return prefix + 
+        return SimplifyOperation (line_in, local_scope, input, out simplified);
     }
 
-    private string SimplifyOperation (string input, Scope local_scope, out bool simplified)
+    private string SimplifyOperation (string line_in, Scope local_scope, InterpreterInput input, out bool simplified)
     {
         /* e.g. "4 + 4 * 4" */
-        List<string> parts = input.Split (Operators.SPLIT, StringSplitOptions.RemoveEmptyEntries).ToList ();
+        List<string> parts = line_in.Split (Operators.SPLIT, StringSplitOptions.RemoveEmptyEntries).ToList ();
+        
+        
+        /* Function Calls first */
+        foreach (var c in classes) {
+            foreach (var m in c.methods) {
+                for (int part = 0; part < parts.Count - 1; part ++) {
+                    if (parts[part] == c.name + "." + m.name)
+                    {
+                        if (parts[part+1] == "()") {
+                            parts[part] = input.components[c.name].Action().ToString("0.00");
+                            parts.RemoveRange (part + 1, 1);
+                            simplified = false;
+                            return String.Join (Operators.SPACE, parts.ToArray ());
+                        } else {
+                            parts[part] = input.components[c.name].Action( float.Parse(parts[part + 1].Substring(1, parts[part + 1].Length - 2))).ToString("0.00");
+                            parts.RemoveRange (part + 1, 1);
+                            simplified = false;
+                            return String.Join (Operators.SPACE, parts.ToArray ());
+                        }
+                    }
+                }
+            }
+        }
+        
         /* ["4", "+", "4", "*", "4"] */
         if (parts.Count == 1)
         {
@@ -513,6 +592,8 @@ public class InterpreterV3
             /* If a variable, convert to temporary value */
             return local_scope.getValue (parts[0]); 
         }
+
+
         simplified = false;
         /* PEDMAS, e.g. ["4", "+", 4, "*", "4"] ==> ["4", "+", "16"] */
         /* First Modulus, then Multiplication and Division together, then Addition and Subtraction together, etc. */
@@ -521,7 +602,7 @@ public class InterpreterV3
             /* Look for operations (the odd indices of the parts array)  */
             for (int part = 1; part < parts.Count - 1; part += 2)
             {
-                /* Check if operation of input matches current order of PEMDAS */
+                /* Check if operation of line_in matches current order of PEMDAS */
                 if (Operators.PEMDAS[operation_set].Contains (parts[part] + Operators.TAB))
                 {
                     /* Replace any variable's mnemonic name with it's value */
@@ -590,6 +671,39 @@ public class InterpreterV3
         /* CASTS NOT HANDLED, e.g. "true + 1.0", TREAT AS STRINGS */
         return simplifyString (left, arithmetic_operator, right);
     }
+    public string ToDebug()
+    {
+        var output = "\nStack" + scope.ToString() + "\n" + heap.ToString() + "\n" + debug_output;
+        debug_output = "";
+        return output;
+    }
+    public string ToString(string class_name)
+    {
+        string output = "";
+        foreach (var c in classes) 
+        {
+            if (c.name == class_name) {
+                if (scope != null) 
+                {
+                    var s = scope.peek();
+                    if (s != null && s.method != null && s.method.class_obj != null && c.name == s.method.class_obj.name && intermediate_line != "") 
+                    {
+                        output += c.ToString(s.method.name, line, intermediate_line);
+                    }
+                    else 
+                    {
+                        output += c.ToString();
+                    }
+                }
+                else 
+                {
+                    output += c.ToString();
+                }
+            }
+        }         
+        // output += "\n\n" + scope.ToString() + "\n" + heap.ToString() + "\nDebug:\n" + debug_output + "\n\nClock: " + System.DateTime.Now.ToString("hh:mm:ss")+ "\n";
+        return output;
+    }
     public override string ToString()
     {
         string output = "";
@@ -612,8 +726,8 @@ public class InterpreterV3
                 output += c.ToString();
             }
         } 
-        output += "\n\n" + scope.ToString() + "\n" + heap.ToString() + "\nDebug:\n" + debug_output + "\n\nClock: " + System.DateTime.Now.ToString("hh:mm:ss");
-        debug_output = "";
+        // output += "\n\n" + scope.ToString() + "\n" + heap.ToString() + "\nDebug:\n" + debug_output + "\n\nClock: " + System.DateTime.Now.ToString("hh:mm:ss") + "\n";
+        // debug_output = "";
         return output;
     }
 }
@@ -650,7 +764,7 @@ public class ScopeObj
     }
     public override string ToString() 
     {
-        string output = "Stack:\n";
+        string output = "";
         if (stack.Count > 0) {
             output += stack.Peek().VariableString();
             foreach (var s in stack.ToArray ()) 
@@ -789,7 +903,7 @@ public class HeapObj
 }
 public class ClassObj
 {
-    public string name = "";
+    public string name = "", parent_name = "";
     public string input = "";
     public List<Field> fields; // primitive data types, objects
     public List<Method> methods; // constructor (initializes fields), getter/setter (modifies fields), main (Processor's start method)
@@ -801,6 +915,14 @@ public class ClassObj
         methods = new List<Method>();
         switch (input)
         {
+
+                // new ClassObj("▩ Process"),
+                // new ClassObj("▥ Bulk"),
+                // new ClassObj("◉ Engine"),
+                // new ClassObj("◎ Right"),
+                // new ClassObj("◎ Left")
+
+
             // Iterate️ class
             case "ℹ":
                 name = "Iterate";
@@ -815,49 +937,124 @@ public class ClassObj
                 methods.Add(new Method(this, "Test", "_Test_method_", "void", new List<Field>(), new List<string>(){"String word = \"apple\";", "return;"}));
                 break;
             // BitNaughts constant class
-            case "◎": //Booster
-                name = "Processor";
-                methods.Add(new Method(this, "Main", "_Entry_point_", "void", new List<Field>(){new Field("args", "String[]")}, new List<string>(){"Booster l;", "Booster r;", "Thruster t;", "while (true) {", "l.Fire(Input.Joystick.X);", "r.Fire(-Input.Joystick.X);", "t.Fire(Input.Joystick.Y);", "if (Input.UseWeapon()) {", "l.Fire(-1);", "r.Fire(-1);", "}", "}"}));
+            case "▩ Process": //Booster
+            // "Booster l;", "Booster r;", "Thruster t;", "while (true) {", "l.Fire(Input.X);", "r.Fire(-Input.X);", "t.Fire(Input.Y);", "if (Input.UseWeapon()) {", "l.Fire(-1);", "r.Fire(-1);", "}", "}"
+                parent_name = "Processor";
+                name = "Process";
+                // fields.AddRange(new List<Field>(){
+                //     new Field("Thrust = new Thruster (3, 4, 5, 6);", "Thruster"), 
+                //     new Field("Right = new Booster (4, 3, 2, 1);", "Booster"), 
+                //     new Field("Left = new Booster (1, 2, 3, 4);", "Booster")
+                // });
+                methods.Add(new Method(this, "Main", "_Entry_point_", "void", new List<Field>(){new Field("args", "String[]")}, new List<string>(){"while (true)", "{", "double y = Input.Y;", "double x = Input.X;", "Engine.Throttle (y * 50);", "Right.Boost (x * -50);", "Left.Boost (x * 50);", "if (Input.Fire)", "{", "Right.Launch ();", "Left.Launch ();", "}", "}"})); //  "}", 
                 // methods.Add(new Method("Boost ()", "Throttle_control", "void", "throttle = 100;"));
                 // methods.Add(new Method("Launch ()", "Torpedo_control", "Torpedo", "return new Torpedo( GetLoadedBarrel() );"));
                 // methods.Add(new Method("Ping ()", "Called_periodically", "void", "throttle--;"));
                 break;
-            case "◉": //Thruster
-                name = "Processor";
+            case "▩ ScanProcess":
+
+            // "Booster l;", "Booster r;", "Thruster t;", "while (true) {", "l.Fire(Input.X);", "r.Fire(-Input.X);", "t.Fire(Input.Y);", "if (Input.UseWeapon()) {", "l.Fire(-1);", "r.Fire(-1);", "}", "}"
+                parent_name = "Processor";
+                name = "Process";
+                // fields.AddRange(new List<Field>(){
+                //     new Field("Thrust = new Thruster (3, 4, 5, 6);", "Thruster"), 
+                //     new Field("Right = new Booster (4, 3, 2, 1);", "Booster"), 
+                //     new Field("Left = new Booster (1, 2, 3, 4);", "Booster")
+                // });
+                methods.Add(new Method(this, "Main", "_Entry_point_", "void", new List<Field>(){new Field("args", "String[]")}, new List<string>(){"while (true)", "{", "Engine.Throttle (Input.Y * 10);", "Swivel.Step (Input.X * 10);", "if (Input.Fire)", "{", "Scanner.Scan ();", "}", "}" })); //"if (r.GetLength () > 0)", "{", "print (r.GetLength ());", "}", "}"})); //  "}", 
+               
+                break;
+            case "▩ GroverProcess":
+
+            // "Booster l;", "Booster r;", "Thruster t;", "while (true) {", "l.Fire(Input.X);", "r.Fire(-Input.X);", "t.Fire(Input.Y);", "if (Input.UseWeapon()) {", "l.Fire(-1);", "r.Fire(-1);", "}", "}"
+                parent_name = "Processor";
+                name = "Process";
+                // fields.AddRange(new List<Field>(){
+                //     new Field("Thrust = new Thruster (3, 4, 5, 6);", "Thruster"), 
+                //     new Field("Right = new Booster (4, 3, 2, 1);", "Booster"), 
+                //     new Field("Left = new Booster (1, 2, 3, 4);", "Booster")
+                // });
+                methods.Add(new Method(this, "Main", "_Entry_point_", "void", new List<Field>(){new Field("args", "String[]")}, new List<string>(){"while (true)", "{", "RightEngine.Throttle (Input.Y * 50);", "RightEngine.Throttle (Input.X * -25);", "if (Scanner.Scan () != 0)", "{", "RightCannon.Fire ();", "LeftCannon.Fire ();", "}", "LeftEngine.Throttle (Input.Y * 50);",  "LeftEngine.Throttle (Input.X * 25);", "}" })); //"if (r.GetLength () > 0)", "{", "print (r.GetLength ());", "}", "}"})); //  "}",  
+                break;
+            case "◉ Engine": //Thruster
+                parent_name = "Thruster";
+                name = "Engine";
                 fields.Add(new Field("throttle", "double", "0"));
-                // methods.Add(new Method("MaxThrottle ()", "Throttle_control_(max)", "void", "throttle = 100;"));
-                // methods.Add(new Method("MinThrottle ()", "Throttle_control_(min)", "void", "throttle = 0;"));
+                methods.Add(new Method(this, "Throttle", "_Throttle_Control_", "void", new List<Field>(){new Field("input", "double")}, new List<string>(){ "throttle += input;" }));
                 break;
-            case "◍": //Cannon
-                name = "Processor";
-                methods.Add(new Method(this, "Main", "_Entry_point_", "void", new List<Field>(){new Field("args", "String[]")}, new List<string>(){"Cannon cl;", "Cannon cr;", "Thruster tl;", "Thruster tr;", "while (true) {", "tl.Fire(Input.Joystick.X);", "tr.Fire(-Input.Joystick.X);", "tl.Fire(Input.Joystick.Y);", "tr.Fire(Input.Joystick.Y);", "if (Input.UseWeapon()) {", "cl.Fire(-1);", "cr.Fire(-1);", "}", "}"}));
-                // methods.Add(new Method("Fire ()", "Use_weapon_control ", "Shell", "return new Shell( GetLoadedBarrel() );"));
+            case "◉ RightEngine":
+                parent_name = "Thruster";
+                name = "RightEngine";
+                fields.Add(new Field("throttle", "double", "0"));
+                methods.Add(new Method(this, "Throttle", "_Throttle_Control_", "void", new List<Field>(){new Field("input", "double")}, new List<string>(){ "throttle += input;" }));
                 break;
-            case "▥": //Bulkhead
-                name = "Bulkhead";
+            case "◉ LeftEngine":
+                parent_name = "Thruster";
+                name = "LeftEngine";
+                fields.Add(new Field("throttle", "double", "0"));
+                methods.Add(new Method(this, "Throttle", "_Throttle_Control_", "void", new List<Field>(){new Field("input", "double")}, new List<string>(){ "throttle += input;" }));
+                break;
+            case "◎ Right":
+                parent_name = "Booster";
+                name = "Right";
+                fields.Add(new Field("throttle", "double", "0"));
+                methods.Add(new Method(this, "Boost", "_Boost_Control_", "void", new List<Field>(){new Field("input", "double")}, new List<string>(){ "throttle += input;" }));
+                methods.Add(new Method(this, "Launch", "_Fire_Torpedo_", "void", new List<Field>(), new List<string>(){"new Torpedo();"}));
+                break;
+            case "◎ Left":
+                parent_name = "Booster";
+                name = "Left";
+                fields.Add(new Field("throttle", "double", "0"));
+                methods.Add(new Method(this, "Boost", "_Boost_Control_", "void", new List<Field>(){new Field("input", "double")}, new List<string>(){ "throttle += input;" }));
+                methods.Add(new Method(this, "Launch", "_Fire_Torpedo_", "void", new List<Field>(), new List<string>(){"new Torpedo();"}));
+                break;
+            // case "◍": //Cannon
+            //     name = "Processor";
+            //     methods.Add(new Method(this, "Main", "_Entry_point_", "void", new List<Field>(){new Field("args", "String[]")}, new List<string>(){"Cannon cl;", "Cannon cr;", "Thruster tl;", "Thruster tr;", "while (true) {", "tl.Fire (Input.X);", "tr.Fire (-Input.X);", "tl.Fire (Input.Y);", "tr.Fire (Input.Y);", "if (Input.UseWeapon ()) {", "cl.Fire(-1);", "cr.Fire(-1);", "}", "}"}));
+            //     // methods.Add(new Method("Fire ()", "Use_weapon_control ", "Shell", "return new Shell( GetLoadedBarrel() );"));
+            //     break;
+            case "▥ Bulk": //Bulkhead
+                parent_name = "Bulkhead";
+                name = "Bulk";
                 fields.Add(new Field("heap", "Heap", "new Heap()"));
-                // methods.Add(new Method("New (string name)", "Memory_Allocation", "void", "heap.Add( name )"));
-                // methods.Add(new Method("Delete (string name)", "Memory_Deallocation", "void", "heap.Remove( name )"));
+                methods.Add(new Method(this, "New", "_Memory_Allocation_", "void", new List<Field>(){new Field("name", "string")}, new List<string>(){"heap.Add (name);"}));
+                methods.Add(new Method(this, "Delete", "_Memory_Deallocation_", "void", new List<Field>(){new Field("name", "string")}, new List<string>(){"heap.Remove (name);"}));
                 break;
             case "▩": //Processor
                 name = "Processor";
                 fields.Add(new Field("stack", "Stack", "new Stack()"));
                 // methods.Add(new Method("Main (string[] args)", "Main_Method_(entry_point)", "void", "$"));
                 break;
-            case "▣": //Gimbal
-                name = "Gimbal";
+            case "▣ Swivel": //Gimbal
+                parent_name = "Gimbal";
+                name = "Swivel";
                 // methods.Add(new Method("RotateCW ()", "Rotation_control_(cw)", "void", "rot += 15;"));
                 // methods.Add(new Method("RotateCCW ()", "Rotation_control_(ccw)", "void", "rot -= 15;"));
-                // methods.Add(new Method("Rotate (double delta)", "Rotation_control_(ccw)", "void", "rot += delta;"));
+                methods.Add(new Method(this, "Step", "_Gimbal_Control_", "void", new List<Field>(), new List<string>(){"rot += delta;"}));
                 break;
-            case "◌": //Sensor
-                name = "Sensor";                
-                methods.Add(new Method(this, "Main", "_Entry_point_", "void", new List<Field>(){new Field("args", "String[]")}, new List<string>(){"Sensor sl;", "Sensor sr;", "Thruster tl;", "Thruster tr;", "while (true) {", "tl.Fire(Input.Joystick.X);", "tr.Fire(-Input.Joystick.X);", "tl.Fire(Input.Joystick.Y);", "tr.Fire(Input.Joystick.Y);", "if (Input.UseWeapon()) {", "sl.Fire(-1);", "sr.Fire(-1);", "}", "}"}));
+            case "◍ RightCannon":
+                parent_name = "Cannon";
+                name = "RightCannon";                
+                methods.Add(new Method(this, "Fire", "_Shoot_Shell_", "void", new List<Field>(), new List<string>(){"new Shell ();"}));
+                    break;
+            case "◍ LeftCannon":
+                parent_name = "Cannon";
+                name = "LeftCannon";                
+                methods.Add(new Method(this, "Fire", "_Shoot_Shell_", "void", new List<Field>(), new List<string>(){"new Shell ();"}));
+                break;
+            case "◌ Scanner": //Sensor
+                parent_name = "Sensor";
+                name = "Scanner";                
+                methods.Add(new Method(this, "Scan", "_Cast_Ray_", "double", new List<Field>(), new List<string>(){"return new Ray ().GetLength ();"}));
                 // methods.Add(new Method("Scan ()", "Measure_distance", "double", "new Ray().Length();"));
                 break;
             case "▦": //Printer
                 fields.Add(new Field("nozzel", "Nozzel", "new Nozzel()"));
                 // methods.Add(new Method("Main (string[] args)", "Main_Method_(entry_point)", "void", "$"));
+                break;
+            case "▨ Antenna":
+                parent_name = "Girder";
+                name = "Antenna";
                 break;
             default:
                 // general classes
@@ -870,27 +1067,28 @@ public class ClassObj
 
     public override string ToString()
     {
-        string output = "class " + name + "\n{\n";//  //_New_field\n  $\n";
+        string output = "";
         foreach (var f in fields.ToArray())
         {
-            output += f.ToString() + "\n";
+            output += " " + f.ToString() + "\n";
         }
         foreach (var m in methods.ToArray())
         {
             output += m.ToString() + "\n";
         }
-        return output + "}\n"; //  //_New_method\n  $
+        return output;
     }
     public string ToString(string method_name, int index, string intermediate_line)
     {
-        string output = "class " + name + "\n{";
+        string output = ""; //"class " + name + " : " + parent_name + " {";
+        //if (parent_name == "") output = "class " + name + " {";
         foreach (var f in fields.ToArray())
         {
-            output += "\n" + f.ToString();
+            output += " " + f.ToString() + "\n";
         }
         foreach (var m in methods.ToArray())
         {
-            output += "\n /*" + m.comment + "*/\n  " + m.return_type + " " + m.name + " (" + string.Join(", ", m.parameters) + ")\n  {\n";
+            output += " /*" + m.comment + "*/\n " + m.return_type + " " + m.name + " (" + string.Join(", ", m.parameters) + ")\n {\n";
             int indent_count = 1;
             for (int i = 0; i < m.lines.Count; i++) 
             {
@@ -900,20 +1098,20 @@ public class ClassObj
                 }
                 if (m.name == method_name && i == index) 
                 {
-                    output += new string(' ', indent_count * 1) + Formatter.Red(intermediate_line.Replace(" ", "_")) + "\n";
+                    output += new string(' ', 1 + indent_count * 1) + Formatter.Red(intermediate_line.Replace(" ", "_")) + "\n";
                 }
                 else 
                 {
-                    output += new string(' ', indent_count * 1) + m.lines[i].Trim() + "\n";
+                    output += new string(' ', 1 + indent_count * 1) + m.lines[i].Trim() + "\n";
                 }
                 if (m.lines[i].Contains(Operators.OPENING_BRACKET)) 
                 {
                     indent_count++;
                 }
             }
-            output += " }";
+            output += " }\n";
         }
-        return output + "\n}\n";
+        return output;
     }
 }
 
@@ -966,9 +1164,9 @@ public class Method
             else if (lines[i].Contains(Operators.CLOSING_BRACKET))
             {
                 indent_count--;
-                if (indent_count <= 0) 
+                if (indent_count == 0) 
                 {
-                    return i;
+                    return i + 1;
                 }
             }
         }
@@ -994,6 +1192,6 @@ public class Method
     }
     public override string ToString ()
     {
-        return " /*" + comment + "*/\n " + return_type + " " + name + " (" + string.Join(", ", parameters) + ") {\n" + IndentedLines() + " }";
+        return " /*" + comment + "*/\n " + return_type + " " + name + " (" + string.Join(", ", parameters) + ")\n {\n" + IndentedLines() + " }";
     }
 }
