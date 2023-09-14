@@ -25,7 +25,7 @@ public class InterpreterInput {
 
 public class InterpreterV3
 {
-    List<ClassObj> classes;
+    public List<ClassObj> classes;
     ScopeObj scope;
     Scope next_scope; // On the next tick, push to the scope stack
     bool previous_scope = false; // On the next tick, pop the scope stack
@@ -41,6 +41,23 @@ public class InterpreterV3
     public InterpreterV3(List<ClassObj> classes) /* InterpreterV3 takes a list of classes, one of which must contain a "Main" method */
     {
         this.classes = classes;
+        this.scope = new ScopeObj();
+        this.heap = new HeapObj();
+        foreach (var c in classes) 
+        {
+            foreach (var m in c.methods) 
+            {
+                if (m.name == "Main") 
+                {
+                    debug_output += "Found Main ()";
+                    scope.push(new Scope(m, 0, m.lines.Count, false, new List<Field>()));
+                    SetTargetClass(c.name);
+                }
+            }
+        }
+    }
+    public void ResetLine() {
+        line = -1;
         this.scope = new ScopeObj();
         this.heap = new HeapObj();
         foreach (var c in classes) 
@@ -270,18 +287,18 @@ public class InterpreterV3
             intermediate_line = s.method.lines[line].Trim();//.TrimEnd(';');
             update_intermediate = false;
         }
-        if (intermediate_line.Contains("Input.X")) {
-            intermediate_line = intermediate_line.Replace("Input.X", input.x.ToString("0.00"));
+        if (intermediate_line.Contains("System.in.X")) {
+            intermediate_line = intermediate_line.Replace("System.in.X", input.x.ToString("0.00"));
             input.x = 0;
             // return true;
         }
-        if (intermediate_line.Contains("Input.Y")) {
-            intermediate_line = intermediate_line.Replace("Input.Y", input.y.ToString("0.00"));
+        if (intermediate_line.Contains("System.in.Y")) {
+            intermediate_line = intermediate_line.Replace("System.in.Y", input.y.ToString("0.00"));
             input.y = 0;
             // return true;
         }
-        if (intermediate_line.Contains("Input.Fire")) {
-            intermediate_line = intermediate_line.Replace("Input.Fire", input.fire.ToString().ToLower());
+        if (intermediate_line.Contains("System.in.Button")) {
+            intermediate_line = intermediate_line.Replace("System.in.Button", input.fire.ToString().ToLower());
             input.fire = false;
             // return true;
         }
@@ -677,6 +694,31 @@ public class InterpreterV3
         debug_output = "";
         return output;
     }
+    public string[] GetMethods(string class_name) {
+        foreach (var c in classes) {
+            if (c.name == class_name) {
+                List<string> method_names = new List<string>();
+                foreach (var method_instance in c.methods) {
+                    method_names.Add(method_instance.name);
+                }
+                return method_names.ToArray();
+            }
+        }
+        return null;
+    }
+    public string GetMethodParameter(string class_name, string method_name) {
+        foreach (var c in classes) {
+            if (c.name == class_name) {
+                List<string> method_names = new List<string>();
+                foreach (var method_instance in c.methods) {
+                    if (method_instance.name == method_name && method_instance.parameters.Count >= 1) {
+                        return method_instance.parameters[0].type;
+                    }
+                }
+            }
+        }
+        return "";
+    }
     public string ToString(string class_name)
     {
         string output = "";
@@ -760,6 +802,7 @@ public class ScopeObj
     {
         if (stack.Count == 0) return -1; 
         stack.Pop();
+        if (stack.Count == 0) return -1; 
         return stack.Peek().return_index;
     }
     public override string ToString() 
@@ -946,7 +989,7 @@ public class ClassObj
                 //     new Field("Right = new Booster (4, 3, 2, 1);", "Booster"), 
                 //     new Field("Left = new Booster (1, 2, 3, 4);", "Booster")
                 // });
-                methods.Add(new Method(this, "Main", "_Entry_point_", "void", new List<Field>(){new Field("args", "String[]")}, new List<string>(){"while (true)", "{", "double y = Input.Y;", "double x = Input.X;", "Engine.Throttle (y * 50);", "Right.Boost (x * -50);", "Left.Boost (x * 50);", "if (Input.Fire)", "{", "Right.Launch ();", "Left.Launch ();", "}", "}"})); //  "}", 
+                methods.Add(new Method(this, "Main", "_Entry_point_", "void", new List<Field>(){new Field("args", "String[]")}, new List<string>(){"while (true)", "{", "double y = Input.Y;", "double x = Input.X;", "Engine.Throttle (y * 50);", "Right.Boost (x * -50);", "Left.Boost (x * 50);", "if (Input.Fire)", "{", "Right.Launch ();", "Left.Launch ();", "}", "$", "}"})); //  "}", 
                 // methods.Add(new Method("Boost ()", "Throttle_control", "void", "throttle = 100;"));
                 // methods.Add(new Method("Launch ()", "Torpedo_control", "Torpedo", "return new Torpedo( GetLoadedBarrel() );"));
                 // methods.Add(new Method("Ping ()", "Called_periodically", "void", "throttle--;"));
@@ -961,7 +1004,9 @@ public class ClassObj
                 //     new Field("Right = new Booster (4, 3, 2, 1);", "Booster"), 
                 //     new Field("Left = new Booster (1, 2, 3, 4);", "Booster")
                 // });
-                methods.Add(new Method(this, "Main", "_Entry_point_", "void", new List<Field>(){new Field("args", "String[]")}, new List<string>(){"while (true)", "{", "Engine.Throttle (Input.Y * 10);", "Swivel.Step (Input.X * 10);", "if (Input.Fire)", "{", "Scanner.Scan ();", "}", "}" })); //"if (r.GetLength () > 0)", "{", "print (r.GetLength ());", "}", "}"})); //  "}", 
+                methods.Add(new Method(this, "Main", "_Entry_point_", "void", new List<Field>(){new Field("args", "String[]")}, new List<string>(){ "$" })); //"if (r.GetLength () > 0)", "{", "print (r.GetLength ());", "}", "}"})); //  "}", 
+                // EXAMPLE IMPLEMENTATION
+                // methods.Add(new Method(this, "Main", "_Entry_point_", "void", new List<Field>(){new Field("args", "String[]")}, new List<string>(){"while (true)", "{", "Engine.Throttle (Input.Y * 10);", "Turret.Rotate (Input.X * 10);", "if (Scanner.Scan () != 0)", "{", "System.out.Println(\"Detected Martian!\");", "}", "$", "}" })); //"if (r.GetLength () > 0)", "{", "print (r.GetLength ());", "}", "}"})); //  "}", 
                
                 break;
             case "▩ GroverProcess":
@@ -974,7 +1019,7 @@ public class ClassObj
                 //     new Field("Right = new Booster (4, 3, 2, 1);", "Booster"), 
                 //     new Field("Left = new Booster (1, 2, 3, 4);", "Booster")
                 // });
-                methods.Add(new Method(this, "Main", "_Entry_point_", "void", new List<Field>(){new Field("args", "String[]")}, new List<string>(){"while (true)", "{", "RightEngine.Throttle (Input.Y * 50);", "RightEngine.Throttle (Input.X * -25);", "if (Scanner.Scan () != 0)", "{", "RightCannon.Fire ();", "LeftCannon.Fire ();", "}", "LeftEngine.Throttle (Input.Y * 50);",  "LeftEngine.Throttle (Input.X * 25);", "}" })); //"if (r.GetLength () > 0)", "{", "print (r.GetLength ());", "}", "}"})); //  "}",  
+                methods.Add(new Method(this, "Main", "_Entry_point_", "void", new List<Field>(){new Field("args", "String[]")}, new List<string>(){"while (true)", "{", "RightEngine.Throttle (Input.Y * 50);", "RightEngine.Throttle (Input.X * -25);", "if (Scanner.Scan () != 0)", "{", "RightCannon.Fire ();", "LeftCannon.Fire ();", "}", "LeftEngine.Throttle (Input.Y * 50);",  "LeftEngine.Throttle (Input.X * 25);", "$", "}" })); //"if (r.GetLength () > 0)", "{", "print (r.GetLength ());", "}", "}"})); //  "}",  
                 break;
             case "◉ Engine": //Thruster
                 parent_name = "Thruster";
@@ -1025,12 +1070,12 @@ public class ClassObj
                 fields.Add(new Field("stack", "Stack", "new Stack()"));
                 // methods.Add(new Method("Main (string[] args)", "Main_Method_(entry_point)", "void", "$"));
                 break;
-            case "▣ Swivel": //Gimbal
+            case "▣ Turret": //Gimbal
                 parent_name = "Gimbal";
-                name = "Swivel";
+                name = "Turret";
                 // methods.Add(new Method("RotateCW ()", "Rotation_control_(cw)", "void", "rot += 15;"));
                 // methods.Add(new Method("RotateCCW ()", "Rotation_control_(ccw)", "void", "rot -= 15;"));
-                methods.Add(new Method(this, "Step", "_Gimbal_Control_", "void", new List<Field>(), new List<string>(){"rot += delta;"}));
+                methods.Add(new Method(this, "Rotate", "_Gimbal_Control_", "void", new List<Field>(), new List<string>(){"rot += delta;"}));
                 break;
             case "◍ RightCannon":
                 parent_name = "Cannon";
