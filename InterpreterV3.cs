@@ -1004,7 +1004,7 @@ public class ClassObj
                 //     new Field("Right = new Booster (4, 3, 2, 1);", "Booster"), 
                 //     new Field("Left = new Booster (1, 2, 3, 4);", "Booster")
                 // });
-                methods.Add(new Method(this, "Main", "_Entry_point_", "void", new List<Field>(){new Field("args", "String[]")}, new List<string>(){ "$" })); //"if (r.GetLength () > 0)", "{", "print (r.GetLength ());", "}", "}"})); //  "}", 
+                methods.Add(new Method(this, "Main", "_Entry_point_", "void", new List<Field>(){new Field("args", "String[]")}, new List<string>(){ "while (true)", "{", "$", "}" })); //"if (r.GetLength () > 0)", "{", "print (r.GetLength ());", "}", "}"})); //  "}", 
                 // EXAMPLE IMPLEMENTATION
                 // methods.Add(new Method(this, "Main", "_Entry_point_", "void", new List<Field>(){new Field("args", "String[]")}, new List<string>(){"while (true)", "{", "Engine.Throttle (Input.Y * 10);", "Turret.Rotate (Input.X * 10);", "if (Scanner.Scan () != 0)", "{", "System.out.Println(\"Detected Martian!\");", "}", "$", "}" })); //"if (r.GetLength () > 0)", "{", "print (r.GetLength ());", "}", "}"})); //  "}", 
                
@@ -1044,14 +1044,14 @@ public class ClassObj
                 name = "Right";
                 fields.Add(new Field("throttle", "double", "0"));
                 methods.Add(new Method(this, "Boost", "_Boost_Control_", "void", new List<Field>(){new Field("input", "double")}, new List<string>(){ "throttle += input;" }));
-                methods.Add(new Method(this, "Launch", "_Fire_Torpedo_", "void", new List<Field>(), new List<string>(){"new Torpedo();"}));
+                methods.Add(new Method(this, "Launch", "_Torpedo_Control_", "void", new List<Field>(), new List<string>(){"new Torpedo();"}));
                 break;
             case "◎ Left":
                 parent_name = "Booster";
                 name = "Left";
                 fields.Add(new Field("throttle", "double", "0"));
                 methods.Add(new Method(this, "Boost", "_Boost_Control_", "void", new List<Field>(){new Field("input", "double")}, new List<string>(){ "throttle += input;" }));
-                methods.Add(new Method(this, "Launch", "_Fire_Torpedo_", "void", new List<Field>(), new List<string>(){"new Torpedo();"}));
+                methods.Add(new Method(this, "Launch", "_Torpedo_Control_", "void", new List<Field>(), new List<string>(){"new Torpedo();"}));
                 break;
             // case "◍": //Cannon
             //     name = "Processor";
@@ -1075,7 +1075,7 @@ public class ClassObj
                 name = "Turret";
                 // methods.Add(new Method("RotateCW ()", "Rotation_control_(cw)", "void", "rot += 15;"));
                 // methods.Add(new Method("RotateCCW ()", "Rotation_control_(ccw)", "void", "rot -= 15;"));
-                methods.Add(new Method(this, "Rotate", "_Gimbal_Control_", "void", new List<Field>(), new List<string>(){"rot += delta;"}));
+                methods.Add(new Method(this, "Rotate", "_Gimbal_Control_", "void", new List<Field>(){new Field("delta", "double")}, new List<string>(){"rot += delta;"}));
                 break;
             case "◍ RightCannon":
                 parent_name = "Cannon";
