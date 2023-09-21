@@ -297,8 +297,8 @@ public class InterpreterV3
             input.y = 0;
             // return true;
         }
-        if (intermediate_line.Contains("System.in.Button")) {
-            intermediate_line = intermediate_line.Replace("System.in.Button", input.fire.ToString().ToLower());
+        if (intermediate_line.Contains("System.in.Z")) {
+            intermediate_line = intermediate_line.Replace("System.in.Z", input.fire.ToString().ToLower());
             input.fire = false;
             // return true;
         }
@@ -1004,7 +1004,7 @@ public class ClassObj
                 //     new Field("Right = new Booster (4, 3, 2, 1);", "Booster"), 
                 //     new Field("Left = new Booster (1, 2, 3, 4);", "Booster")
                 // });
-                methods.Add(new Method(this, "Main", "_Entry_point_", "void", new List<Field>(){new Field("args", "String[]")}, new List<string>(){ "while (true)", "{", "$", "}" })); //"if (r.GetLength () > 0)", "{", "print (r.GetLength ());", "}", "}"})); //  "}", 
+                methods.Add(new Method(this, "Main", "_Entry_point_", "void", new List<Field>(){new Field("args", "String[]")}, new List<string>(){ "while (true)", "{", "$", "Engine.Throttle (System.in.Y * 50);", "Right.Boost (System.in.X * -50);", "if (Scanner.Scan () != 0 || System.in.Z)", "{", "Right.Launch ();", "Left.Launch ();", "}", "Left.Boost (System.in.X * 50);", "}" })); //"if (r.GetLength () > 0)", "{", "print (r.GetLength ());", "}", "}"})); //  "}", 
                 // EXAMPLE IMPLEMENTATION
                 // methods.Add(new Method(this, "Main", "_Entry_point_", "void", new List<Field>(){new Field("args", "String[]")}, new List<string>(){"while (true)", "{", "Engine.Throttle (Input.Y * 10);", "Turret.Rotate (Input.X * 10);", "if (Scanner.Scan () != 0)", "{", "System.out.Println(\"Detected Martian!\");", "}", "$", "}" })); //"if (r.GetLength () > 0)", "{", "print (r.GetLength ());", "}", "}"})); //  "}", 
                
