@@ -989,7 +989,7 @@ public class ClassObj
                 //     new Field("Right = new Booster (4, 3, 2, 1);", "Booster"), 
                 //     new Field("Left = new Booster (1, 2, 3, 4);", "Booster")
                 // });
-                methods.Add(new Method(this, "Main", "_Entry_point_", "void", new List<Field>(){new Field("args", "String[]")}, new List<string>(){"while (true)", "{", "double y = Input.Y;", "double x = Input.X;", "Engine.Throttle (y * 50);", "Right.Boost (x * -50);", "Left.Boost (x * 50);", "if (Input.Fire)", "{", "Right.Launch ();", "Left.Launch ();", "}", "$", "}"})); //  "}", 
+                methods.Add(new Method(this, "Main", "_Entry_point_", "void", new List<Field>(){new Field("args", "String[]")}, new List<string>(){"while (true)", "{", "double y = System.in.Y;", "double x = System.in.X;", "Engine.Throttle (y * 50);", "Right.Boost (x * -50);", "Left.Boost (x * 50);", "if (System.in.Z)", "{", "Right.Launch ();", "Left.Launch ();", "}", "$", "}"})); //  "}", 
                 // methods.Add(new Method("Boost ()", "Throttle_control", "void", "throttle = 100;"));
                 // methods.Add(new Method("Launch ()", "Torpedo_control", "Torpedo", "return new Torpedo( GetLoadedBarrel() );"));
                 // methods.Add(new Method("Ping ()", "Called_periodically", "void", "throttle--;"));
